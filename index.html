@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlante delle Meridiane – Meridiane d'Italia</title>
+  <meta name="description" content="Atlante fotografico delle meridiane: scopri le meridiane catalogate nei comuni italiani, con fotografie, località, motti e informazioni.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://sebb71.github.io/meridianeditalia/">
+  <meta name="theme-color" content="#e9dcc7">
+
+  <!-- Anteprima quando il link viene condiviso (WhatsApp, Facebook, ecc.) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:site_name" content="Atlante delle Meridiane">
+  <meta property="og:title" content="Atlante delle Meridiane – Meridiane d'Italia">
+  <meta property="og:description" content="Atlante fotografico delle meridiane catalogate nei comuni italiani, con fotografie, località, motti e informazioni.">
+  <meta property="og:url" content="https://sebb71.github.io/meridianeditalia/">
+  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/meridiana_001.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebSite","name":"Atlante delle Meridiane",
+   "url":"https://sebb71.github.io/meridianeditalia/","inLanguage":"it",
+   "description":"Atlante fotografico delle meridiane catalogate nei comuni italiani."}
+  </script>
+
+  <!--GC--><!--/GC-->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Torna all'inizio">
+      <span class="brand-sun">☀</span>
+      <span class="brand-text">
+        <h1>Atlante delle Meridiane</h1>
+        <small>Dati e fotografie della collezione personale</small>
+        <small><span id="count">0</span> meridiane · <span id="count-comuni">0</span> comuni</small>
+      </span>
+    </a>
+  </header>
+
+  <main>
+    <noscript><p class="muted">Per consultare l'atlante delle meridiane è necessario attivare JavaScript.</p></noscript>
+
+    <!-- ===== HOME: foto casuale + ricerca comuni ===== -->
+    <section id="view-home" class="view">
+      <figure class="featured" id="featured" hidden>
+        <a id="featured-link" class="featured-photo" href="#" aria-label="Apri la meridiana">
+          <img id="featured-img" alt="">
+          <figcaption>
+            <span class="eyebrow light">UNA MERIDIANA A CASO</span>
+            <span id="featured-title" class="featured-title"></span>
+            <span class="featured-cta">Tocca per vedere la scheda →</span>
+          </figcaption>
+        </a>
+        <button type="button" id="shuffle" class="shuffle" aria-label="Mostra un'altra meridiana">🔀 Un'altra</button>
+      </figure>
+
+      <section class="search-block" aria-label="Cerca un comune">
+        <label for="search" class="eyebrow">CERCA UN COMUNE</label>
+        <input id="search" type="search" inputmode="search" autocomplete="off" autocapitalize="words"
+               placeholder="Comune, provincia o regione…" enterkeyhint="go" aria-controls="suggestions">
+        <ul id="suggestions" class="comuni-list" aria-live="polite"></ul>
+        <p id="no-results" class="muted" hidden>Nessun comune con meridiane corrisponde alla ricerca.</p>
+
+        <label for="browse" class="eyebrow browse-label">OPPURE SFOGLIA L'ELENCO</label>
+        <select id="browse">
+          <option value="">Scegli un comune…</option>
+        </select>
+      </section>
+
+      <p class="about-wrap">
+        <a class="comune-btn about-link" href="il-progetto.html">
+          <span class="comune-name">Il progetto<small>Perché questo atlante</small></span>
+          <span class="chev">›</span>
+        </a>
+      </p>
+
+      <details class="all-comuni">
+        <summary>Tutti i comuni con meridiane (<span id="all-comuni-count">0</span>)</summary>
+        <ul id="all-comuni-list"></ul>
+      </details>
+    </section>
+
+    <!-- ===== ELENCO MERIDIANE DI UN COMUNE ===== -->
+    <section id="view-comune" class="view" hidden>
+      <a class="back" href="#">← Cerca un altro comune</a>
+      <p class="eyebrow">MERIDIANE CATALOGATE</p>
+      <h2 id="comune-title"></h2>
+      <p id="comune-sub" class="muted"></p>
+      <ul id="sundial-list" class="sundial-list"></ul>
+    </section>
+
+    <!-- ===== SCHEDA DI UNA MERIDIANA ===== -->
+    <section id="view-detail" class="view" hidden></section>
+
+    <!-- ===== MAPPA (in fondo): si carica solo dopo il consenso ===== -->
+    <section id="map-section" class="map-section" aria-label="Mappa">
+      <h3>Dove si trovano</h3>
+      <div id="map-gate" class="map-gate">
+        <p class="gate-title">Mappa interattiva</p>
+        <p>La mappa usa le cartine di OpenStreetMap e alcune librerie esterne: attivandola, il tuo indirizzo IP viene trasmesso a questi servizi. Il sito non usa cookie.</p>
+        <button type="button" id="map-enable">Attiva la mappa</button>
+        <p class="gate-msg" id="map-gate-msg" hidden></p>
+        <p class="gate-small"><a href="privacy.html#mappa">Informativa privacy</a> · La scelta viene ricordata su questo dispositivo.</p>
+      </div>
+      <div id="map-wrap" hidden>
+        <p class="muted">Tocca un ☀️ per aprire l'elenco del comune.</p>
+        <div id="map" aria-label="Mappa delle meridiane"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><span id="footer-copy">© 2026 Sebb71</span> · Atlante delle Meridiane — salvo diversa indicazione le fotografie sono dell'autore del sito. Riproduzione vietata senza autorizzazione.</p>
+    <p><a href="il-progetto.html">Il progetto</a> · <a href="privacy.html">Informativa privacy</a><span id="map-reset-sep" hidden> · </span><button type="button" id="map-reset" class="link-btn" hidden>Disattiva la mappa (revoca il consenso)</button></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

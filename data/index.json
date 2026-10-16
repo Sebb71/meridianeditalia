@@ -1,0 +1,117 @@
+{
+ "totale": 13,
+ "aggiornato": "2026-10-16",
+ "copyright_sito": "© 2026 Sebb71",
+ "comuni": [
+  {
+   "key": "Bedizzole (BS)",
+   "slug": "bedizzole-bs",
+   "nome": "Bedizzole",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.510571,
+   "lon": 10.423032
+  },
+  {
+   "key": "Calcinato (BS)",
+   "slug": "calcinato-bs",
+   "nome": "Calcinato",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.457182,
+   "lon": 10.413574
+  },
+  {
+   "key": "Carpenedolo (BS)",
+   "slug": "carpenedolo-bs",
+   "nome": "Carpenedolo",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.364606,
+   "lon": 10.429385
+  },
+  {
+   "key": "Desenzano del Garda (BS)",
+   "slug": "desenzano-del-garda-bs",
+   "nome": "Desenzano del Garda",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.469485,
+   "lon": 10.538947
+  },
+  {
+   "key": "Lonato del Garda (BS)",
+   "slug": "lonato-del-garda-bs",
+   "nome": "Lonato del Garda",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 3,
+   "lat": 45.461039,
+   "lon": 10.484535
+  },
+  {
+   "key": "Muscoline (BS)",
+   "slug": "muscoline-bs",
+   "nome": "Muscoline",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.562485,
+   "lon": 10.461874
+  },
+  {
+   "key": "Parma (PR)",
+   "slug": "parma-pr",
+   "nome": "Parma",
+   "sigla": "PR",
+   "provincia": "Parma",
+   "regione": "Emilia-Romagna",
+   "n": 1,
+   "lat": 44.801368,
+   "lon": 10.328083
+  },
+  {
+   "key": "Puegnago del Garda (BS)",
+   "slug": "puegnago-del-garda-bs",
+   "nome": "Puegnago del Garda",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 2,
+   "lat": 45.565692,
+   "lon": 10.51147
+  },
+  {
+   "key": "Serle (BS)",
+   "slug": "serle-bs",
+   "nome": "Serle",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.570284,
+   "lon": 10.366071
+  },
+  {
+   "key": "Toscolano-Maderno (BS)",
+   "slug": "toscolano-maderno-bs",
+   "nome": "Toscolano-Maderno",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.63453,
+   "lon": 10.609521
+  }
+ ]
+}

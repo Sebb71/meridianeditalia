@@ -1,0 +1,249 @@
+* { box-sizing: border-box; }
+:root {
+  --ink: #28241f;
+  --muted: #71685e;
+  --paper: #f6f1e7;
+  --card: #fffdf8;
+  --accent: #b46b31;
+  --line: #ddd2c1;
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.45;
+}
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+.muted { color: var(--muted); font: 14px/1.5 Arial, sans-serif; margin: 0; }
+.eyebrow {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--accent);
+  font: 700 12px/1.2 Arial, sans-serif;
+  letter-spacing: .16em;
+}
+.eyebrow.light { color: #f3d9bd; margin-bottom: 4px; }
+
+/* --- barra in alto --- */
+.topbar {
+  position: sticky; top: 0; z-index: 1000;
+  background: linear-gradient(135deg, #e9dcc7, #f7f1e7);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  max-width: 900px; margin: auto; padding: 10px 16px;
+  color: var(--ink); text-decoration: none;
+}
+.brand-sun { font-size: 30px; line-height: 1; color: var(--accent); }
+.brand-text strong, .brand-text h1 { display: block; margin: 0; font-size: 20px; font-weight: 500; line-height: 1.1; }
+.brand-text small { display: block; color: var(--muted); font: 12px Arial, sans-serif; margin-top: 3px; }
+
+main { max-width: 900px; margin: auto; padding: 14px 16px 30px; }
+
+/* --- foto casuale --- */
+.featured { position: relative; margin: 0 0 22px; }
+.featured-photo {
+  position: relative; display: block; overflow: hidden;
+  border-radius: 14px; background: #d9ccb6;
+  aspect-ratio: 4 / 3; max-height: 70vh; width: 100%;
+  text-decoration: none; color: #fff;
+  box-shadow: 0 6px 22px #00000026;
+}
+.featured-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.featured-photo figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 46px 16px 14px;
+  background: linear-gradient(transparent, #000000bb);
+  display: flex; flex-direction: column;
+}
+.featured-title { font-size: 26px; line-height: 1.1; }
+.featured-cta { margin-top: 6px; font: 13px Arial, sans-serif; opacity: .9; }
+.shuffle {
+  position: absolute; top: 10px; right: 10px;
+  min-height: 40px; padding: 0 14px;
+  border: 0; border-radius: 999px;
+  background: #fffdf8ee; color: var(--ink);
+  font: 600 14px Arial, sans-serif;
+  box-shadow: 0 2px 8px #0000003a;
+  cursor: pointer;
+}
+
+/* --- ricerca --- */
+input, button { font: 16px Arial, sans-serif; }   /* 16px: evita lo zoom automatico su iPhone */
+#search {
+  width: 100%; min-height: 52px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--ink);
+  padding: 0 16px;
+}
+#search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.comuni-list, .sundial-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.comune-btn, .sundial-btn {
+  width: 100%; min-height: 56px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--ink);
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.comune-btn:hover, .sundial-btn:hover, .comune-btn:active, .sundial-btn:active { border-color: var(--accent); }
+.comune-name { flex: 1; font-size: 18px; }
+.badge {
+  min-width: 30px; padding: 3px 10px; text-align: center;
+  border-radius: 999px; background: #f2e9db; color: var(--accent);
+  font: 700 13px Arial, sans-serif;
+}
+.chev { color: var(--muted); font-size: 22px; line-height: 1; }
+
+/* --- elenco meridiane --- */
+h2 { margin: 0 0 4px; font-size: 32px; font-weight: 500; line-height: 1.1; }
+.back {
+  display: inline-flex; align-items: center; min-height: 44px;
+  margin-bottom: 8px; font: 600 15px Arial, sans-serif; text-decoration: none;
+}
+.sundial-btn { padding: 8px; }
+.sundial-btn img {
+  width: 76px; height: 76px; flex: none;
+  object-fit: cover; border-radius: 8px; background: #e6dccb;
+}
+.sundial-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sundial-info strong { font-size: 18px; font-weight: 500; }
+.sundial-info span { color: var(--muted); font: 13px Arial, sans-serif; }
+
+/* --- scheda --- */
+.photo-wrap {
+  display: block; margin: 0 -16px;       /* foto a tutta larghezza su telefono */
+  background: #ece3d3;
+}
+.photo-wrap img {
+  display: block; width: 100%; height: auto; max-height: 75vh; object-fit: contain; margin: auto;
+}
+.photo-hint { margin: 6px 0 0; text-align: center; color: var(--muted); font: 12px Arial, sans-serif; }
+.detail-body { padding-top: 16px; }
+.detail-locality { margin: 6px 0 4px; font-size: 16px; }
+.motto {
+  margin: 18px 0; padding: 14px 16px;
+  border-left: 3px solid var(--accent); background: #f2e9db;
+  font-style: italic; font-size: 21px;
+}
+.meta { display: grid; gap: 10px; font: 15px/1.55 Arial, sans-serif; color: var(--muted); }
+.meta strong { color: var(--ink); }
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.pager a {
+  display: flex; align-items: center; justify-content: center; min-height: 48px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+  text-decoration: none; font: 600 15px Arial, sans-serif;
+}
+.pager a.disabled { visibility: hidden; }
+
+/* --- mappa in fondo --- */
+.map-section { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); }
+.map-section h3 { margin: 0 0 4px; font-size: 24px; font-weight: 500; }
+#map {
+  height: 380px; margin-top: 12px;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+}
+.sundial-marker {
+  background: transparent; border: 0;
+  font-size: 26px; line-height: 34px; text-align: center;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
+}
+
+footer { max-width: 900px; margin: auto; padding: 10px 16px 36px; color: var(--muted); font: 12px Arial, sans-serif; }
+
+/* --- schermi più larghi --- */
+@media (min-width: 700px) {
+  main { padding: 24px 24px 50px; }
+  .brand { padding: 14px 24px; }
+  .brand-text strong, .brand-text h1 { font-size: 24px; }
+  .featured-photo { aspect-ratio: 16 / 9; }
+  .featured-title { font-size: 34px; }
+  .photo-wrap { margin: 0; border-radius: 12px; overflow: hidden; }
+  .comuni-list { grid-template-columns: 1fr 1fr; }
+  #map { height: 460px; }
+}
+
+/* Foto casuale: mostrata intera, senza tagli */
+.featured-photo { aspect-ratio: auto; max-height: none; background: #ece3d3; }
+.featured-photo img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; margin: auto; }
+@media (min-width: 700px) { .featured-photo { aspect-ratio: auto; } }
+
+/* Ricerca comuni con suggerimenti + elenco a tendina */
+.browse-label { margin-top: 22px; }
+#browse {
+  width: 100%; min-height: 52px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--ink);
+  font: 16px Arial, sans-serif;
+}
+.comune-name small { display: block; color: var(--muted); font: 13px Arial, sans-serif; margin-top: 1px; }
+.comuni-list:empty { display: none; }
+.more { margin: 4px 2px 0; }
+
+/* Credito sotto le foto */
+.photo-credit { margin: 6px 0 0; text-align: center; color: var(--muted); font: 12px Arial, sans-serif; }
+
+/* Elenco di tutti i comuni (link alle pagine, utile anche ai motori di ricerca) */
+.all-comuni { margin-top: 26px; font: 14px/1.5 Arial, sans-serif; color: var(--muted); }
+.all-comuni summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font-weight: 600; }
+.all-comuni ul { list-style: none; margin: 8px 0 0; padding: 0; columns: 2 170px; }
+.all-comuni li { margin: 0; padding: 3px 0; break-inside: avoid; }
+
+/* Mappa: gruppi di marker nei colori del sito */
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgba(180, 107, 49, .35); }
+.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+  background-color: rgba(180, 107, 49, .9); color: #fff; font: 700 13px Arial, sans-serif;
+}
+
+/* Pagine dei comuni (comuni/*.html) */
+.page-title { margin: 0 0 4px; font-size: 32px; font-weight: 500; line-height: 1.1; }
+.sundial-card { margin: 30px 0 0; padding-top: 22px; border-top: 1px solid var(--line); }
+.sundial-card h2 { font-size: 24px; }
+.sundial-figure { margin: 12px -16px 0; background: #ece3d3; }
+.sundial-figure img { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; margin: auto; }
+.sundial-figure figcaption { padding: 6px 16px 0; text-align: center; color: var(--muted); font: 12px Arial, sans-serif; background: var(--paper); }
+.page-cta { margin: 34px 0 0; }
+.cta-btn {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px;
+  border: 1px solid var(--accent); border-radius: 10px; background: var(--card);
+  font: 600 15px Arial, sans-serif; text-decoration: none;
+}
+@media (min-width: 700px) {
+  .sundial-figure { margin: 12px 0 0; border-radius: 12px; overflow: hidden; }
+  .sundial-figure figcaption { padding-bottom: 6px; }
+}
+
+/* Mappa oscurata finché non si accetta */
+.map-gate {
+  min-height: 380px; margin-top: 12px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  text-align: center; color: #fff;
+  border: 1px solid var(--line); border-radius: 12px;
+  background:
+    linear-gradient(rgba(40, 36, 31, .80), rgba(40, 36, 31, .80)),
+    repeating-linear-gradient(45deg, #d9ccb6 0 14px, #e6dccb 14px 28px);
+}
+.map-gate p { margin: 0; max-width: 34em; font: 15px/1.5 Arial, sans-serif; }
+.map-gate .gate-title { font: 24px Georgia, serif; }
+.map-gate .gate-small { font-size: 13px; opacity: .9; }
+.map-gate .gate-msg { color: #ffd9c2; font-weight: 700; }
+.map-gate a { color: #f3d9bd; }
+.map-gate button {
+  min-height: 48px; padding: 0 24px; border: 0; border-radius: 10px;
+  background: var(--accent); color: #fff; font: 700 16px Arial, sans-serif; cursor: pointer;
+}
+footer p { margin: 0 0 6px; }
+.link-btn {
+  padding: 0; border: 0; background: none; color: var(--accent);
+  font: inherit; text-decoration: underline; cursor: pointer;
+}
+.privacy h2 { margin: 30px 0 6px; font-size: 22px; }
+.privacy p, .privacy li { font: 16px/1.6 Arial, sans-serif; }
+.privacy ul { padding-left: 22px; }
+
+.about-wrap { margin: 22px 0 0; }
+.about-link .comune-name { font-size: 18px; }
