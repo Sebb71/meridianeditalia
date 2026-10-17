@@ -56,6 +56,9 @@ async function init() {
 
   fillBrowse();
   fillAllComuni();
+  fetch("data/config-form.json").then(r => (r.ok ? r.json() : null)).then(f => {
+    if (f && f.attivo) { $("form-link-wrap").hidden = false; $("form-link-foot").hidden = false; }
+  }).catch(() => { /* modulo non configurato */ });
   setupSearch();
   $("shuffle").addEventListener("click", pickRandom);
   pickRandom();

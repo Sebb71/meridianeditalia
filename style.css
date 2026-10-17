@@ -247,3 +247,36 @@ footer p { margin: 0 0 6px; }
 
 .about-wrap { margin: 22px 0 0; }
 .about-link .comune-name { font-size: 18px; }
+
+/* Modulo "Inserisci la tua meridiana" */
+.form-page form { margin-top: 22px; }
+.field { margin: 0 0 20px; padding: 0; border: 0; min-width: 0; }
+.field > label:not(.choice), .field > legend { display: block; margin: 0 0 6px; padding: 0; font: 700 15px Arial, sans-serif; color: var(--ink); }
+.field input[type="text"], .field input[type="email"], .field input[type="file"], .field textarea {
+  width: 100%; min-height: 48px; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink);
+  font: 16px Arial, sans-serif;
+}
+.field textarea { resize: vertical; }
+.field input:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hint { margin: 6px 0 0; color: var(--muted); font: 13px/1.5 Arial, sans-serif; }
+.err { margin: 6px 0 0; color: #a3321c; font: 700 14px/1.4 Arial, sans-serif; }
+label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card); font: 15px/1.45 Arial, sans-serif; cursor: pointer; }
+.choice input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
+.choice span { font-weight: 400; color: var(--ink); }
+.choice strong { font-weight: 700; }
+#nome-box { margin-top: 12px; }
+#nome-box label { display: block; margin: 0 0 6px; font: 700 15px Arial, sans-serif; }
+.anteprima { display: block; max-width: 100%; max-height: 260px; margin: 12px 0 0; border-radius: 10px; }
+.sug-btn { min-height: 46px; }
+.submit-btn { width: 100%; min-height: 54px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: 700 17px Arial, sans-serif; cursor: pointer; }
+.submit-btn:disabled { opacity: .6; cursor: wait; }
+.status { margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; background: #f2e9db; font: 15px/1.5 Arial, sans-serif; }
+.status.bad { background: #f7ddd5; color: #7d2514; font-weight: 700; }
+.notice { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font: 15px/1.55 Arial, sans-serif; }
+.notice.ok h2 { margin-top: 0; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.about-wrap + .about-wrap { margin-top: 10px; }
+.contribute-link { border-color: var(--accent); }
