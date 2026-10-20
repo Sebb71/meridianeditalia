@@ -73,6 +73,46 @@
         <p class="err" id="err-proprieta" hidden></p>
       </fieldset>
 
+      <fieldset class="field pos-box" id="pos-box">
+        <legend>Dove si trova? (facoltativo)</legend>
+        <p class="hint">Mi aiuta a controllare la proposta. Per le proprietà private la posizione non viene mai pubblicata.</p>
+        <div class="pos-actions">
+          <button type="button" id="btn-gps" class="secondary-btn">📍 Uso la mia posizione attuale</button>
+          <button type="button" id="btn-mappa" class="secondary-btn">🗺️ Scelgo sulla mappa</button>
+        </div>
+        <p id="gps-msg" class="status" role="status" hidden></p>
+        <div id="gps-conferma" class="notice" hidden>
+          <p id="gps-testo"></p>
+          <div class="pos-actions">
+            <button type="button" id="gps-si" class="secondary-btn strong">Sì, la meridiana è qui</button>
+            <button type="button" id="gps-no" class="secondary-btn">No, la scelgo sulla mappa</button>
+          </div>
+        </div>
+
+        <div id="map-gate-form" class="map-gate" hidden>
+          <p class="gate-title">Mappa interattiva</p>
+          <p>La mappa usa le cartine di OpenStreetMap e alcune librerie esterne: attivandola, il tuo indirizzo IP viene trasmesso a questi servizi. Il sito non usa cookie.</p>
+          <button type="button" id="map-enable-form">Attiva la mappa</button>
+          <p class="gate-msg" id="map-gate-msg-form" hidden></p>
+          <p class="gate-small"><a href="privacy.html#mappa" target="_blank" rel="noopener">Informativa privacy</a> · La scelta viene ricordata su questo dispositivo.</p>
+        </div>
+        <div id="map-wrap-form" hidden>
+          <p class="hint">Tocca la mappa (o trascina il segnaposto) nel punto esatto della meridiana. Ingrandisci per essere più preciso.</p>
+          <div id="mappa-form" aria-label="Mappa per scegliere la posizione"></div>
+          <button type="button" id="map-reset-form" class="link-btn">Disattiva la mappa (revoca il consenso)</button>
+        </div>
+
+        <div id="pos-riepilogo" class="pos-sum" hidden>
+          <p id="pos-testo"></p>
+          <p id="pos-avviso" class="err" hidden></p>
+          <button type="button" id="pos-rimuovi" class="link-btn">Rimuovi la posizione</button>
+        </div>
+
+        <label for="indicazioni" class="sub-label">Oppure indica il posto a parole</label>
+        <input id="indicazioni" type="text" maxlength="300" autocomplete="off" placeholder="Indirizzo, luogo o link Google Maps">
+        <p class="err" id="err-posizione" hidden></p>
+      </fieldset>
+
       <div class="field">
         <label for="note">Note</label>
         <textarea id="note" rows="3" maxlength="1000" placeholder="Qualsiasi dettaglio utile: dove si trova, cosa dice l'iscrizione…"></textarea>

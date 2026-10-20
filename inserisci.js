@@ -6,9 +6,10 @@
   const MAX_LATO = 1600, MAX_BYTE = 3 * 1024 * 1024;
 
   let cfg = null;
-  let elenco = [], elencoNorm = [];
+  let elenco = [], elencoNorm = [], centri = [];
   let foto = null;               // { base64, byte, larghezza, altezza }
   let tsToken = "", tsCaricato = false, inviando = false;
+  let pos = null, gpsTemp = null, map = null, marcatore = null, mapConsent = false, leafletPromise = null;
 
   // ---------- avvio ----------
   async function avvia() {
@@ -22,8 +23,10 @@
     if (cfg.sitekey) $("ts-hint").hidden = false;
     try {
       const r = await fetch("data/comuni_elenco.json");
-      elenco = await r.json();
+      const lista = await r.json();                       // [nome, latitudine, longitudine]
+      elenco = lista.map(x => x[0]);
       elencoNorm = elenco.map(norm);
+      centri = lista.map(x => (x[1] == null ? null : [x[1], x[2]]));
     } catch (_) { /* senza elenco il comune non si può scegliere: l'errore comparirà all'invio */ }
 
     $("comune").addEventListener("input", suggerisci);
@@ -31,7 +34,175 @@
     document.querySelectorAll('input[name="credito"]').forEach(el =>
       el.addEventListener("change", () => { $("nome-box").hidden = (valoreRadio("credito") !== "mostra"); }));
     $("modulo").addEventListener("focusin", caricaTurnstile, { once: true });
+    mapConsent = leggiConsenso();
+    $("btn-gps").addEventListener("click", usaGps);
+    $("gps-si").addEventListener("click", confermaGps);
+    $("gps-no").addEventListener("click", () => { $("gps-conferma").hidden = true; apriMappa(gpsTemp); });
+    $("btn-mappa").addEventListener("click", () => apriMappa(pos));
+    $("map-enable-form").addEventListener("click", attivaMappa);
+    $("map-reset-form").addEventListener("click", disattivaMappa);
+    $("pos-rimuovi").addEventListener("click", rimuoviPos);
+    $("comune").addEventListener("change", () => { if (map && !pos) centraSulComune(); });
     $("modulo").addEventListener("submit", invia);
+  }
+
+
+  // ---------- posizione: GPS, mappa, riepilogo ----------
+  const CHIAVE_CONSENSO = "atlante-mappa-consenso";          // la stessa della mappa della home
+  const LEAFLET = { css: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", js: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" };
+  const arrotonda = (n) => Math.round(n * 1e5) / 1e5;
+
+  function leggiConsenso() { try { return localStorage.getItem(CHIAVE_CONSENSO) === "si"; } catch (_) { return false; } }
+  function salvaConsenso(on) { try { on ? localStorage.setItem(CHIAVE_CONSENSO, "si") : localStorage.removeItem(CHIAVE_CONSENSO); } catch (_) { /* solo per questa visita */ } }
+
+  function distanzaKm(a, b) {
+    const R = 6371, rad = (x) => x * Math.PI / 180;
+    const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function centroComune() {
+    const label = trovaEsatto($("comune").value);
+    return label ? (centri[elenco.indexOf(label)] || null) : null;
+  }
+
+  function messaggioGps(testo, errore_) {
+    const p = $("gps-msg");
+    p.textContent = testo; p.hidden = !testo; p.classList.toggle("bad", !!errore_);
+  }
+
+  function usaGps() {
+    $("gps-conferma").hidden = true;
+    if (!navigator.geolocation) {
+      messaggioGps("Questo dispositivo non permette di rilevare la posizione. Scegli il punto sulla mappa o scrivi dove si trova.", true);
+      return;
+    }
+    messaggioGps("Sto cercando la posizione… il browser ti chiederà il permesso.");
+    navigator.geolocation.getCurrentPosition((p) => {
+      messaggioGps("");
+      gpsTemp = { lat: p.coords.latitude, lon: p.coords.longitude, precisione: p.coords.accuracy };
+      let t = `Posizione rilevata: ${gpsTemp.lat.toFixed(5)}, ${gpsTemp.lon.toFixed(5)} (precisione circa ±${Math.round(gpsTemp.precisione)} m). ` +
+              "La meridiana si trova qui, dove sei adesso?";
+      if (gpsTemp.precisione > 150) t += " Attenzione: la precisione è bassa, conviene controllare il punto sulla mappa.";
+      $("gps-testo").textContent = t;
+      $("gps-conferma").hidden = false;
+    }, (e) => {
+      const m = e.code === 1 ? "Non hai dato il permesso di usare la posizione. Puoi scegliere il punto sulla mappa o scrivere dove si trova."
+              : e.code === 3 ? "La rilevazione della posizione ha impiegato troppo tempo. Riprova all'aperto, oppure usa la mappa."
+              : "Non riesco a rilevare la posizione. Usa la mappa o scrivi dove si trova.";
+      messaggioGps(m, true);
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  }
+  function confermaGps() {
+    if (!gpsTemp) return;
+    impostaPos(gpsTemp.lat, gpsTemp.lon, "gps", gpsTemp.precisione);
+    $("gps-conferma").hidden = true;
+  }
+
+  function impostaPos(lat, lon, origine, precisione) {
+    pos = { lat: arrotonda(lat), lon: arrotonda(lon), origine };
+    if (origine === "gps" && typeof precisione === "number") pos.precisione = Math.round(precisione);
+    if (map) {
+      if (!marcatore) creaMarcatore([pos.lat, pos.lon]); else marcatore.setLatLng([pos.lat, pos.lon]);
+    }
+    aggiornaRiepilogo();
+  }
+  function rimuoviPos() {
+    pos = null;
+    if (marcatore && map) { map.removeLayer(marcatore); }
+    marcatore = null;
+    aggiornaRiepilogo();
+  }
+  function aggiornaRiepilogo() {
+    $("pos-riepilogo").hidden = !pos;
+    $("err-posizione").hidden = true;
+    if (!pos) return;
+    const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
+    $("pos-testo").textContent = `Posizione ${da}: ${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}`;
+    const c = centroComune();
+    const avviso = $("pos-avviso");
+    if (c && distanzaKm(c, [pos.lat, pos.lon]) > 15) {
+      avviso.textContent = `Il punto è a circa ${Math.round(distanzaKm(c, [pos.lat, pos.lon]))} km dal centro del comune indicato: controlla di aver scelto il comune giusto.`;
+      avviso.hidden = false;
+    } else { avviso.hidden = true; }
+  }
+
+  // ---------- mappa (si carica solo dopo il consenso) ----------
+  function caricaLeaflet() {
+    if (typeof L !== "undefined") return Promise.resolve();
+    if (!leafletPromise) {
+      const link = document.createElement("link"); link.rel = "stylesheet"; link.href = LEAFLET.css; document.head.appendChild(link);
+      leafletPromise = new Promise((ok, ko) => {
+        const sc = document.createElement("script"); sc.src = LEAFLET.js;
+        sc.onload = ok; sc.onerror = () => { leafletPromise = null; ko(new Error("Leaflet non caricato")); };
+        document.head.appendChild(sc);
+      });
+    }
+    return leafletPromise;
+  }
+  function mostraMappaOGate() {
+    $("map-gate-form").hidden = mapConsent || !mappaRichiesta;
+    $("map-wrap-form").hidden = !(mapConsent && mappaRichiesta);
+  }
+  let mappaRichiesta = false;
+
+  function apriMappa(punto) {
+    mappaRichiesta = true;
+    if (punto) vistaIniziale = [punto.lat, punto.lon];
+    mostraMappaOGate();
+    if (mapConsent) {
+      if (map && punto) map.setView([punto.lat, punto.lon], 17);
+      avviaMappa();
+    }
+  }
+  let vistaIniziale = null;
+
+  async function attivaMappa() {
+    mapConsent = true; salvaConsenso(true);
+    $("map-gate-msg-form").hidden = true;
+    mostraMappaOGate();
+    await avviaMappa();
+  }
+  async function avviaMappa() {
+    try {
+      await caricaLeaflet();
+      if (!mapConsent) return;
+      if (!map) creaMappa();
+      setTimeout(() => map && map.invalidateSize(), 50);
+      $("map-wrap-form").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (_) {
+      mapConsent = false; mostraMappaOGate();
+      $("map-gate-msg-form").textContent = "Non è stato possibile caricare la mappa. Controlla la connessione e riprova.";
+      $("map-gate-msg-form").hidden = false;
+    }
+  }
+  function disattivaMappa() {
+    mapConsent = false; salvaConsenso(false);
+    if (map) { map.remove(); map = null; marcatore = null; }
+    mappaRichiesta = false;
+    mostraMappaOGate();
+  }
+  function creaMarcatore(ll) {
+    const icona = L.divIcon({ className: "sundial-marker", html: "☀️", iconSize: [34, 34], iconAnchor: [17, 17] });
+    marcatore = L.marker(ll, { icon: icona, draggable: true }).addTo(map);
+    marcatore.on("dragend", () => { const p = marcatore.getLatLng(); impostaPos(p.lat, p.lng, "mappa"); });
+  }
+  function creaMappa() {
+    let centro = [42.5, 12.5], zoom = 6;
+    if (pos) { centro = [pos.lat, pos.lon]; zoom = 17; }
+    else if (vistaIniziale) { centro = vistaIniziale; zoom = 17; }
+    else { const c = centroComune(); if (c) { centro = c; zoom = 13; } }
+    map = L.map("mappa-form", { scrollWheelZoom: false }).setView(centro, zoom);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    if (pos) creaMarcatore([pos.lat, pos.lon]);
+    map.on("click", (e) => impostaPos(e.latlng.lat, e.latlng.lng, "mappa"));
+  }
+  function centraSulComune() {
+    const c = centroComune();
+    if (c && map) map.setView(c, 13);
   }
 
   // ---------- errori ----------
@@ -58,6 +229,7 @@
     ul.innerHTML = lista.map(l => `<li><button type="button" class="comune-btn sug-btn" data-v="${l.replace(/"/g, "&quot;")}"><span class="comune-name">${l.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</span></button></li>`).join("");
     ul.querySelectorAll(".sug-btn").forEach(b => b.addEventListener("click", () => {
       $("comune").value = b.dataset.v; ul.innerHTML = ""; $("err-comune").hidden = true;
+      if (map && !pos) centraSulComune();
     }));
   }
 
@@ -179,6 +351,8 @@
       consenso_pubblicazione: $("c-pubblicazione").checked,
       consenso_contenuto: $("c-contenuto").checked,
       consenso_privacy: $("c-privacy").checked,
+      posizione: pos ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
+      indicazioni: $("indicazioni").value,
       sito_web: $("sito_web").value,
       turnstile: tsToken
     };

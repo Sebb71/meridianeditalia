@@ -280,3 +280,16 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .about-wrap + .about-wrap { margin-top: 10px; }
 .contribute-link { border-color: var(--accent); }
+
+/* Posizione nel modulo */
+.pos-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.secondary-btn { flex: 1 1 210px; min-height: 50px; padding: 0 14px; border: 1px solid var(--accent); border-radius: 12px;
+  background: var(--card); color: var(--ink); font: 700 15px Arial, sans-serif; cursor: pointer; }
+.secondary-btn.strong { background: var(--accent); color: #fff; }
+#mappa-form { height: 340px; margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.pos-box .map-gate { min-height: 240px; margin-top: 12px; }
+.pos-sum { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--accent); border-radius: 12px; background: var(--card); font: 15px/1.5 Arial, sans-serif; }
+.pos-sum p { margin: 0 0 6px; }
+.field > label.sub-label { display: block; margin: 20px 0 6px; font: 700 15px Arial, sans-serif; }
+.pos-box input[type="text"] { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--ink); font: 16px Arial, sans-serif; }
