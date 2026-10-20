@@ -76,9 +76,10 @@
       <fieldset class="field pos-box" id="pos-box">
         <legend>Dove si trova? (facoltativo)</legend>
         <p class="hint">Mi aiuta a controllare la proposta. Per le proprietà private la posizione non viene mai pubblicata.</p>
+        <p class="hint hint-warn" id="pos-prima">Scegli prima il comune: serve a controllare che la posizione sia nel posto giusto.</p>
         <div class="pos-actions">
-          <button type="button" id="btn-gps" class="secondary-btn">📍 Uso la mia posizione attuale</button>
-          <button type="button" id="btn-mappa" class="secondary-btn">🗺️ Scelgo sulla mappa</button>
+          <button type="button" id="btn-gps" class="secondary-btn" disabled>📍 Uso la mia posizione attuale</button>
+          <button type="button" id="btn-mappa" class="secondary-btn" disabled>🗺️ Scelgo sulla mappa</button>
         </div>
         <p id="gps-msg" class="status" role="status" hidden></p>
         <div id="gps-conferma" class="notice" hidden>
@@ -97,7 +98,7 @@
           <p class="gate-small"><a href="privacy.html#mappa" target="_blank" rel="noopener">Informativa privacy</a> · La scelta viene ricordata su questo dispositivo.</p>
         </div>
         <div id="map-wrap-form" hidden>
-          <p class="hint">Tocca la mappa (o trascina il segnaposto) nel punto esatto della meridiana. Ingrandisci per essere più preciso.</p>
+          <p class="hint">Tocca la mappa (o trascina il segnaposto) nel punto esatto della meridiana. Il cerchio tratteggiato indica l'area indicativa del comune. Ingrandisci per essere più preciso.</p>
           <div id="mappa-form" aria-label="Mappa per scegliere la posizione"></div>
           <button type="button" id="map-reset-form" class="link-btn">Disattiva la mappa (revoca il consenso)</button>
         </div>

@@ -6,10 +6,11 @@
   const MAX_LATO = 1600, MAX_BYTE = 3 * 1024 * 1024;
 
   let cfg = null;
-  let elenco = [], elencoNorm = [], centri = [];
+  let elenco = [], elencoNorm = [], centri = [], raggi = [];
   let foto = null;               // { base64, byte, larghezza, altezza }
   let tsToken = "", tsCaricato = false, inviando = false;
-  let pos = null, gpsTemp = null, map = null, marcatore = null, mapConsent = false, leafletPromise = null;
+  let pos = null, gpsTemp = null, gpsInAttesa = false, map = null, marcatore = null, cerchioGps = null, cerchioArea = null;
+  let mapConsent = false, leafletPromise = null, comuneCorrente = null;
 
   // ---------- avvio ----------
   async function avvia() {
@@ -27,6 +28,7 @@
       elenco = lista.map(x => x[0]);
       elencoNorm = elenco.map(norm);
       centri = lista.map(x => (x[1] == null ? null : [x[1], x[2]]));
+      raggi = lista.map(x => (x[3] == null ? null : x[3]));        // raggio indicativo del comune, in km
     } catch (_) { /* senza elenco il comune non si può scegliere: l'errore comparirà all'invio */ }
 
     $("comune").addEventListener("input", suggerisci);
@@ -37,12 +39,14 @@
     mapConsent = leggiConsenso();
     $("btn-gps").addEventListener("click", usaGps);
     $("gps-si").addEventListener("click", confermaGps);
-    $("gps-no").addEventListener("click", () => { $("gps-conferma").hidden = true; apriMappa(gpsTemp); });
-    $("btn-mappa").addEventListener("click", () => apriMappa(pos));
+    $("gps-no").addEventListener("click", annullaGps);
+    $("btn-mappa").addEventListener("click", () => apriMappa(pos, 16));
     $("map-enable-form").addEventListener("click", attivaMappa);
     $("map-reset-form").addEventListener("click", disattivaMappa);
     $("pos-rimuovi").addEventListener("click", rimuoviPos);
-    $("comune").addEventListener("change", () => { if (map && !pos) centraSulComune(); });
+    $("comune").addEventListener("input", aggiornaStatoPosizione);
+    $("comune").addEventListener("change", aggiornaStatoPosizione);
+    aggiornaStatoPosizione();
     $("modulo").addEventListener("submit", invia);
   }
 
@@ -50,6 +54,8 @@
   // ---------- posizione: GPS, mappa, riepilogo ----------
   const CHIAVE_CONSENSO = "atlante-mappa-consenso";          // la stessa della mappa della home
   const LEAFLET = { css: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", js: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" };
+  const ZOOM_PUNTO = 16;                                     // abbastanza vicino da riconoscere l'edificio, non il massimo (19)
+  const FATTORE_LIMITE = 2.2;                                // oltre 2,2 volte il raggio indicativo: coordinata non valida
   const arrotonda = (n) => Math.round(n * 1e5) / 1e5;
 
   function leggiConsenso() { try { return localStorage.getItem(CHIAVE_CONSENSO) === "si"; } catch (_) { return false; } }
@@ -61,9 +67,48 @@
     const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
     return 2 * R * Math.asin(Math.sqrt(h));
   }
-  function centroComune() {
+  function indiceComune() {
     const label = trovaEsatto($("comune").value);
-    return label ? (centri[elenco.indexOf(label)] || null) : null;
+    return label ? elenco.indexOf(label) : -1;
+  }
+  function centroComune() { const i = indiceComune(); return i >= 0 ? centri[i] : null; }
+  function raggioComune() { const i = indiceComune(); return i >= 0 ? raggi[i] : null; }
+
+  // Controllo di massima (non abbiamo i confini reali): ok / al limite / fuori dal comune / non verificabile
+  function verificaPunto(lat, lon) {
+    const c = centroComune(), r = raggioComune();
+    if (!c || !r) return { stato: "nd" };
+    const km = distanzaKm(c, [lat, lon]);
+    if (km <= r) return { stato: "ok", km };
+    if (km <= FATTORE_LIMITE * r) return { stato: "limite", km };
+    return { stato: "fuori", km };
+  }
+  function erroreFuori(km) {
+    const p = $("err-posizione");
+    p.textContent = `Coordinata non valida: il punto è esterno al comune selezionato (a circa ${Math.round(km)} km dal suo centro). ` +
+                    "Scegli un punto dentro il comune, oppure descrivi il posto a parole.";
+    p.hidden = false;
+  }
+
+  // Si può indicare la posizione solo dopo aver scelto il comune
+  function aggiornaStatoPosizione() {
+    const label = trovaEsatto($("comune").value);
+    $("btn-gps").disabled = !label;
+    $("btn-mappa").disabled = !label;
+    $("pos-prima").hidden = !!label;
+    if (label !== comuneCorrente) {
+      const cambiato = comuneCorrente !== null && label !== null;
+      comuneCorrente = label;
+      if (label) {
+        if (cambiato) annullaGps();
+        if (pos) {
+          const v = verificaPunto(pos.lat, pos.lon);
+          if (v.stato === "fuori") { rimuoviPos(); erroreFuori(v.km); }
+          else aggiornaRiepilogo();
+        }
+        if (map) { disegnaArea(); if (!pos) centraSulComune(); }
+      }
+    }
   }
 
   function messaggioGps(testo, errore_) {
@@ -72,7 +117,8 @@
   }
 
   function usaGps() {
-    $("gps-conferma").hidden = true;
+    $("gps-conferma").hidden = true; gpsInAttesa = false;
+    $("err-posizione").hidden = true;
     if (!navigator.geolocation) {
       messaggioGps("Questo dispositivo non permette di rilevare la posizione. Scegli il punto sulla mappa o scrivi dove si trova.", true);
       return;
@@ -81,11 +127,22 @@
     navigator.geolocation.getCurrentPosition((p) => {
       messaggioGps("");
       gpsTemp = { lat: p.coords.latitude, lon: p.coords.longitude, precisione: p.coords.accuracy };
+      const v = verificaPunto(gpsTemp.lat, gpsTemp.lon);
+      if (v.stato === "fuori") {
+        gpsTemp = null;
+        messaggioGps(`Il GPS indica una posizione esterna al comune selezionato (a circa ${Math.round(v.km)} km dal suo centro): ` +
+                     "non la posso usare. Controlla di aver scelto il comune giusto, oppure scegli il punto sulla mappa.", true);
+        apriMappa(null, 13);
+        return;
+      }
+      gpsInAttesa = true;
       let t = `Posizione rilevata: ${gpsTemp.lat.toFixed(5)}, ${gpsTemp.lon.toFixed(5)} (precisione circa ±${Math.round(gpsTemp.precisione)} m). ` +
-              "La meridiana si trova qui, dove sei adesso?";
-      if (gpsTemp.precisione > 150) t += " Attenzione: la precisione è bassa, conviene controllare il punto sulla mappa.";
+              "Controlla sulla mappa: la meridiana si trova qui, dove sei adesso?";
+      if (gpsTemp.precisione > 150) t += " Attenzione: la precisione è bassa, conviene correggere il punto sulla mappa.";
+      if (v.stato === "limite") t += " Il punto è vicino al limite del comune.";
       $("gps-testo").textContent = t;
       $("gps-conferma").hidden = false;
+      apriMappa(gpsTemp, ZOOM_PUNTO);                      // mostra subito la mappa con il punto rilevato
     }, (e) => {
       const m = e.code === 1 ? "Non hai dato il permesso di usare la posizione. Puoi scegliere il punto sulla mappa o scrivere dove si trova."
               : e.code === 3 ? "La rilevazione della posizione ha impiegato troppo tempo. Riprova all'aperto, oppure usa la mappa."
@@ -96,33 +153,49 @@
   function confermaGps() {
     if (!gpsTemp) return;
     impostaPos(gpsTemp.lat, gpsTemp.lon, "gps", gpsTemp.precisione);
+  }
+  function annullaGps() {
+    gpsInAttesa = false;
     $("gps-conferma").hidden = true;
+    if (map) { togliCerchioGps(); if (!pos && marcatore) { map.removeLayer(marcatore); marcatore = null; } }
   }
 
+  // Registra la posizione se è valida; restituisce false se il punto è fuori dal comune
   function impostaPos(lat, lon, origine, precisione) {
+    const v = verificaPunto(lat, lon);
+    if (v.stato === "fuori") { erroreFuori(v.km); return false; }
     pos = { lat: arrotonda(lat), lon: arrotonda(lon), origine };
     if (origine === "gps" && typeof precisione === "number") pos.precisione = Math.round(precisione);
+    gpsInAttesa = false;
+    $("gps-conferma").hidden = true;
     if (map) {
       if (!marcatore) creaMarcatore([pos.lat, pos.lon]); else marcatore.setLatLng([pos.lat, pos.lon]);
+      if (origine !== "gps") togliCerchioGps();
     }
     aggiornaRiepilogo();
+    return true;
   }
   function rimuoviPos() {
     pos = null;
-    if (marcatore && map) { map.removeLayer(marcatore); }
+    if (map) { togliCerchioGps(); if (marcatore) map.removeLayer(marcatore); }
     marcatore = null;
     aggiornaRiepilogo();
   }
+  function ripristinaMarcatore() {
+    if (!marcatore) return;
+    if (pos) marcatore.setLatLng([pos.lat, pos.lon]);
+    else if (gpsInAttesa && gpsTemp) marcatore.setLatLng([gpsTemp.lat, gpsTemp.lon]);
+    else { map.removeLayer(marcatore); marcatore = null; }
+  }
   function aggiornaRiepilogo() {
     $("pos-riepilogo").hidden = !pos;
-    $("err-posizione").hidden = true;
+    if (pos) $("err-posizione").hidden = true;
     if (!pos) return;
     const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
     $("pos-testo").textContent = `Posizione ${da}: ${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}`;
-    const c = centroComune();
-    const avviso = $("pos-avviso");
-    if (c && distanzaKm(c, [pos.lat, pos.lon]) > 15) {
-      avviso.textContent = `Il punto è a circa ${Math.round(distanzaKm(c, [pos.lat, pos.lon]))} km dal centro del comune indicato: controlla di aver scelto il comune giusto.`;
+    const v = verificaPunto(pos.lat, pos.lon), avviso = $("pos-avviso");
+    if (v.stato === "limite") {
+      avviso.textContent = `Il punto è a circa ${Math.round(v.km)} km dal centro del comune, vicino al suo limite: controlla di aver scelto il comune giusto.`;
       avviso.hidden = false;
     } else { avviso.hidden = true; }
   }
@@ -140,22 +213,28 @@
     }
     return leafletPromise;
   }
+  let mappaRichiesta = false, vistaIniziale = null;
+
   function mostraMappaOGate() {
     $("map-gate-form").hidden = mapConsent || !mappaRichiesta;
     $("map-wrap-form").hidden = !(mapConsent && mappaRichiesta);
   }
-  let mappaRichiesta = false;
 
-  function apriMappa(punto) {
+  // punto: dove centrare (se c'è); zoom: livello di ingrandimento
+  function apriMappa(punto, zoom) {
     mappaRichiesta = true;
-    if (punto) vistaIniziale = [punto.lat, punto.lon];
+    vistaIniziale = punto ? { c: [punto.lat, punto.lon], z: zoom || ZOOM_PUNTO } : null;
     mostraMappaOGate();
-    if (mapConsent) {
-      if (map && punto) map.setView([punto.lat, punto.lon], 17);
+    if (!mapConsent) return;
+    if (map) {
+      if (vistaIniziale) map.setView(vistaIniziale.c, vistaIniziale.z); else centraSulComune();
+      disegnaArea();
+      if (gpsInAttesa) mostraMarcatoreGps();
+      setTimeout(() => map && map.invalidateSize(), 50);
+    } else {
       avviaMappa();
     }
   }
-  let vistaIniziale = null;
 
   async function attivaMappa() {
     mapConsent = true; salvaConsenso(true);
@@ -178,26 +257,48 @@
   }
   function disattivaMappa() {
     mapConsent = false; salvaConsenso(false);
-    if (map) { map.remove(); map = null; marcatore = null; }
+    if (map) { map.remove(); map = null; marcatore = null; cerchioGps = null; cerchioArea = null; }
     mappaRichiesta = false;
     mostraMappaOGate();
   }
   function creaMarcatore(ll) {
     const icona = L.divIcon({ className: "sundial-marker", html: "☀️", iconSize: [34, 34], iconAnchor: [17, 17] });
     marcatore = L.marker(ll, { icon: icona, draggable: true }).addTo(map);
-    marcatore.on("dragend", () => { const p = marcatore.getLatLng(); impostaPos(p.lat, p.lng, "mappa"); });
+    marcatore.on("dragend", () => {
+      const p = marcatore.getLatLng();
+      if (!impostaPos(p.lat, p.lng, "mappa")) ripristinaMarcatore();   // fuori dal comune: il segnaposto torna indietro
+    });
+  }
+  function mostraMarcatoreGps() {
+    if (!map || !gpsTemp) return;
+    const ll = [gpsTemp.lat, gpsTemp.lon];
+    if (!marcatore) creaMarcatore(ll); else marcatore.setLatLng(ll);
+    togliCerchioGps();
+    cerchioGps = L.circle(ll, { radius: Math.min(gpsTemp.precisione || 0, 1000), color: "#b46b31", weight: 1, fillOpacity: 0.15, interactive: false }).addTo(map);
+  }
+  function togliCerchioGps() {
+    if (cerchioGps && map) map.removeLayer(cerchioGps);
+    cerchioGps = null;
+  }
+  function disegnaArea() {                                  // cerchio tratteggiato: area indicativa del comune
+    if (!map) return;
+    if (cerchioArea) { map.removeLayer(cerchioArea); cerchioArea = null; }
+    const c = centroComune(), r = raggioComune();
+    if (c && r) cerchioArea = L.circle(c, { radius: r * 1000, color: "#b46b31", weight: 1.5, dashArray: "6 6", fill: false, interactive: false }).addTo(map);
   }
   function creaMappa() {
     let centro = [42.5, 12.5], zoom = 6;
-    if (pos) { centro = [pos.lat, pos.lon]; zoom = 17; }
-    else if (vistaIniziale) { centro = vistaIniziale; zoom = 17; }
+    if (pos) { centro = [pos.lat, pos.lon]; zoom = ZOOM_PUNTO; }
+    else if (vistaIniziale) { centro = vistaIniziale.c; zoom = vistaIniziale.z; }
     else { const c = centroComune(); if (c) { centro = c; zoom = 13; } }
     map = L.map("mappa-form", { scrollWheelZoom: false }).setView(centro, zoom);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    disegnaArea();
     if (pos) creaMarcatore([pos.lat, pos.lon]);
+    else if (gpsInAttesa) mostraMarcatoreGps();
     map.on("click", (e) => impostaPos(e.latlng.lat, e.latlng.lng, "mappa"));
   }
   function centraSulComune() {
@@ -229,7 +330,7 @@
     ul.innerHTML = lista.map(l => `<li><button type="button" class="comune-btn sug-btn" data-v="${l.replace(/"/g, "&quot;")}"><span class="comune-name">${l.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</span></button></li>`).join("");
     ul.querySelectorAll(".sug-btn").forEach(b => b.addEventListener("click", () => {
       $("comune").value = b.dataset.v; ul.innerHTML = ""; $("err-comune").hidden = true;
-      if (map && !pos) centraSulComune();
+      aggiornaStatoPosizione();
     }));
   }
 
