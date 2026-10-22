@@ -6,7 +6,7 @@
   const MAX_LATO = 1600, MAX_BYTE = 3 * 1024 * 1024;
 
   let cfg = null;
-  let elenco = [], elencoNorm = [], centri = [], raggi = [];
+  let elenco = [], elencoNorm = [], centri = [];
   let foto = null;               // { base64, byte, larghezza, altezza }
   let tsToken = "", tsCaricato = false, inviando = false;
   let pos = null, gpsTemp = null, gpsInAttesa = false, map = null, marcatore = null, cerchioGps = null, cerchioArea = null;
@@ -28,7 +28,6 @@
       elenco = lista.map(x => x[0]);
       elencoNorm = elenco.map(norm);
       centri = lista.map(x => (x[1] == null ? null : [x[1], x[2]]));
-      raggi = lista.map(x => (x[3] == null ? null : x[3]));        // raggio indicativo del comune, in km
     } catch (_) { /* senza elenco il comune non si può scegliere: l'errore comparirà all'invio */ }
 
     $("comune").addEventListener("input", suggerisci);
@@ -55,37 +54,91 @@
   const CHIAVE_CONSENSO = "atlante-mappa-consenso";          // la stessa della mappa della home
   const LEAFLET = { css: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", js: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" };
   const ZOOM_PUNTO = 16;                                     // abbastanza vicino da riconoscere l'edificio, non il massimo (19)
-  const FATTORE_LIMITE = 2.2;                                // oltre 2,2 volte il raggio indicativo: coordinata non valida
+  const MARGINE_M = 500;                                     // tolleranza sul confine (GPS, contorni semplificati lungo coste e laguna)
   const arrotonda = (n) => Math.round(n * 1e5) / 1e5;
 
   function leggiConsenso() { try { return localStorage.getItem(CHIAVE_CONSENSO) === "si"; } catch (_) { return false; } }
   function salvaConsenso(on) { try { on ? localStorage.setItem(CHIAVE_CONSENSO, "si") : localStorage.removeItem(CHIAVE_CONSENSO); } catch (_) { /* solo per questa visita */ } }
 
-  function distanzaKm(a, b) {
-    const R = 6371, rad = (x) => x * Math.PI / 180;
-    const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(h));
-  }
   function indiceComune() {
     const label = trovaEsatto($("comune").value);
     return label ? elenco.indexOf(label) : -1;
   }
   function centroComune() { const i = indiceComune(); return i >= 0 ? centri[i] : null; }
-  function raggioComune() { const i = indiceComune(); return i >= 0 ? raggi[i] : null; }
 
-  // Controllo di massima (non abbiamo i confini reali): ok / al limite / fuori dal comune / non verificabile
-  function verificaPunto(lat, lon) {
-    const c = centroComune(), r = raggioComune();
-    if (!c || !r) return { stato: "nd" };
-    const km = distanzaKm(c, [lat, lon]);
-    if (km <= r) return { stato: "ok", km };
-    if (km <= FATTORE_LIMITE * r) return { stato: "limite", km };
-    return { stato: "fuori", km };
+  // ---------- confini del comune (ISTAT, un file per provincia, caricato quando serve) ----------
+  const cacheProvince = {};           // sigla -> promessa con i confini di tutta la provincia
+  let confineComune = null;           // { b: riquadro, poligoni: [[anello, ...], ...] } oppure null se non disponibile
+  let confiniPromessa = Promise.resolve(null);
+  let confiniToken = 0;
+
+  function decodificaAnello(a) {      // [lat0, lon0, dlat, dlon, ...] in unità di 1e-4 gradi
+    const out = [[a[0] / 1e4, a[1] / 1e4]];
+    let la = a[0], lo = a[1];
+    for (let i = 2; i < a.length; i += 2) { la += a[i]; lo += a[i + 1]; out.push([la / 1e4, lo / 1e4]); }
+    return out;
   }
-  function erroreFuori(km) {
+  function caricaProvincia(sigla) {
+    if (!cacheProvince[sigla]) {
+      cacheProvince[sigla] = fetch(`data/confini/${sigla}.json`).then(r => (r.ok ? r.json() : null)).catch(() => null);
+    }
+    return cacheProvince[sigla];
+  }
+  function caricaConfiniComune(label) {
+    const token = ++confiniToken;
+    confineComune = null;
+    const m = /\(([A-Z]{2})\)$/.exec(label || "");
+    if (!m) return Promise.resolve(null);
+    confiniPromessa = caricaProvincia(m[1]).then(dati => {
+      if (token !== confiniToken) return null;
+      const e = dati && dati[label];
+      confineComune = e ? { b: e.b, poligoni: e.g.map(p => p.map(decodificaAnello)) } : null;
+      return confineComune;
+    });
+    return confiniPromessa;
+  }
+
+  function dentroPoligono(lat, lon, anelli) {                // regola pari/dispari su tutti gli anelli (buchi compresi)
+    let dentro = false;
+    for (const a of anelli) {
+      for (let i = 0, j = a.length - 1; i < a.length; j = i++) {
+        const yi = a[i][0], xi = a[i][1], yj = a[j][0], xj = a[j][1];
+        if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) dentro = !dentro;
+      }
+    }
+    return dentro;
+  }
+  function distanzaDalBordoM(lat, lon, poligoni) {
+    const ky = 110570, kx = 111320 * Math.cos(lat * Math.PI / 180);
+    let min = Infinity;
+    for (const p of poligoni) for (const a of p) {
+      for (let i = 0; i < a.length - 1; i++) {
+        const ax = (a[i][1] - lon) * kx, ay = (a[i][0] - lat) * ky, bx = (a[i + 1][1] - lon) * kx, by = (a[i + 1][0] - lat) * ky;
+        const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+        const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2));
+        const d = Math.hypot(ax + t * dx, ay + t * dy);
+        if (d < min) min = d;
+      }
+    }
+    return min;
+  }
+
+  // Controllo con i confini del comune: ok (dentro) / bordo (entro il margine) / fuori / nd (confini non disponibili)
+  function verificaPunto(lat, lon, precisione) {
+    const cf = confineComune;
+    if (!cf) return { stato: "nd" };
+    const [minLa, minLo, maxLa, maxLo] = cf.b;
+    if (lat >= minLa && lat <= maxLa && lon >= minLo && lon <= maxLo) {
+      for (const p of cf.poligoni) if (dentroPoligono(lat, lon, p)) return { stato: "ok", m: 0 };
+    }
+    const d = distanzaDalBordoM(lat, lon, cf.poligoni);
+    if (d <= MARGINE_M + Math.min(precisione || 0, 500)) return { stato: "bordo", m: d };
+    return { stato: "fuori", m: d };
+  }
+  function testoDistanza(m) { return m < 1000 ? `${Math.max(50, Math.round(m / 50) * 50)} m` : `${Math.round(m / 1000)} km`; }
+  function erroreFuori(m) {
     const p = $("err-posizione");
-    p.textContent = `Coordinata non valida: il punto è esterno al comune selezionato (a circa ${Math.round(km)} km dal suo centro). ` +
+    p.textContent = `Coordinata non valida: il punto è esterno al comune selezionato (a circa ${testoDistanza(m)} dal suo confine). ` +
                     "Scegli un punto dentro il comune, oppure descrivi il posto a parole.";
     p.hidden = false;
   }
@@ -101,12 +154,15 @@
       comuneCorrente = label;
       if (label) {
         if (cambiato) annullaGps();
-        if (pos) {
-          const v = verificaPunto(pos.lat, pos.lon);
-          if (v.stato === "fuori") { rimuoviPos(); erroreFuori(v.km); }
-          else aggiornaRiepilogo();
-        }
-        if (map) { disegnaArea(); if (!pos) centraSulComune(); }
+        caricaConfiniComune(label).then(() => {
+          if (comuneCorrente !== label) return;
+          if (pos) {
+            const v = verificaPunto(pos.lat, pos.lon, pos.precisione);
+            if (v.stato === "fuori") { rimuoviPos(); erroreFuori(v.m); }
+            else aggiornaRiepilogo();
+          }
+          if (map) { disegnaArea(); if (!pos && !gpsInAttesa) centraSulComune(); }
+        });
       }
     }
   }
@@ -124,13 +180,14 @@
       return;
     }
     messaggioGps("Sto cercando la posizione… il browser ti chiederà il permesso.");
-    navigator.geolocation.getCurrentPosition((p) => {
+    navigator.geolocation.getCurrentPosition(async (p) => {
       messaggioGps("");
       gpsTemp = { lat: p.coords.latitude, lon: p.coords.longitude, precisione: p.coords.accuracy };
-      const v = verificaPunto(gpsTemp.lat, gpsTemp.lon);
+      await confiniPromessa;                               // i confini del comune devono essere pronti
+      const v = verificaPunto(gpsTemp.lat, gpsTemp.lon, gpsTemp.precisione);
       if (v.stato === "fuori") {
         gpsTemp = null;
-        messaggioGps(`Il GPS indica una posizione esterna al comune selezionato (a circa ${Math.round(v.km)} km dal suo centro): ` +
+        messaggioGps(`Il GPS indica una posizione esterna al comune selezionato (a circa ${testoDistanza(v.m)} dal suo confine): ` +
                      "non la posso usare. Controlla di aver scelto il comune giusto, oppure scegli il punto sulla mappa.", true);
         apriMappa(null, 13);
         return;
@@ -139,7 +196,7 @@
       let t = `Posizione rilevata: ${gpsTemp.lat.toFixed(5)}, ${gpsTemp.lon.toFixed(5)} (precisione circa ±${Math.round(gpsTemp.precisione)} m). ` +
               "Controlla sulla mappa: la meridiana si trova qui, dove sei adesso?";
       if (gpsTemp.precisione > 150) t += " Attenzione: la precisione è bassa, conviene correggere il punto sulla mappa.";
-      if (v.stato === "limite") t += " Il punto è vicino al limite del comune.";
+      if (v.stato === "bordo") t += " Il punto è molto vicino al confine del comune.";
       $("gps-testo").textContent = t;
       $("gps-conferma").hidden = false;
       apriMappa(gpsTemp, ZOOM_PUNTO);                      // mostra subito la mappa con il punto rilevato
@@ -162,8 +219,8 @@
 
   // Registra la posizione se è valida; restituisce false se il punto è fuori dal comune
   function impostaPos(lat, lon, origine, precisione) {
-    const v = verificaPunto(lat, lon);
-    if (v.stato === "fuori") { erroreFuori(v.km); return false; }
+    const v = verificaPunto(lat, lon, precisione);
+    if (v.stato === "fuori") { erroreFuori(v.m); return false; }
     pos = { lat: arrotonda(lat), lon: arrotonda(lon), origine };
     if (origine === "gps" && typeof precisione === "number") pos.precisione = Math.round(precisione);
     gpsInAttesa = false;
@@ -193,9 +250,9 @@
     if (!pos) return;
     const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
     $("pos-testo").textContent = `Posizione ${da}: ${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}`;
-    const v = verificaPunto(pos.lat, pos.lon), avviso = $("pos-avviso");
-    if (v.stato === "limite") {
-      avviso.textContent = `Il punto è a circa ${Math.round(v.km)} km dal centro del comune, vicino al suo limite: controlla di aver scelto il comune giusto.`;
+    const v = verificaPunto(pos.lat, pos.lon, pos.precisione), avviso = $("pos-avviso");
+    if (v.stato === "bordo") {
+      avviso.textContent = "Il punto è molto vicino al confine del comune: controlla di aver scelto il comune giusto.";
       avviso.hidden = false;
     } else { avviso.hidden = true; }
   }
@@ -280,18 +337,21 @@
     if (cerchioGps && map) map.removeLayer(cerchioGps);
     cerchioGps = null;
   }
-  function disegnaArea() {                                  // cerchio tratteggiato: area indicativa del comune
+  function disegnaArea() {                                  // contorno tratteggiato del comune
     if (!map) return;
     if (cerchioArea) { map.removeLayer(cerchioArea); cerchioArea = null; }
-    const c = centroComune(), r = raggioComune();
-    if (c && r) cerchioArea = L.circle(c, { radius: r * 1000, color: "#b46b31", weight: 1.5, dashArray: "6 6", fill: false, interactive: false }).addTo(map);
+    if (confineComune) {
+      cerchioArea = L.polygon(confineComune.poligoni, { color: "#b46b31", weight: 1.5, dashArray: "6 6", fill: false, interactive: false }).addTo(map);
+    }
   }
   function creaMappa() {
     let centro = [42.5, 12.5], zoom = 6;
     if (pos) { centro = [pos.lat, pos.lon]; zoom = ZOOM_PUNTO; }
     else if (vistaIniziale) { centro = vistaIniziale.c; zoom = vistaIniziale.z; }
     else { const c = centroComune(); if (c) { centro = c; zoom = 13; } }
+    const adattaAlComune = !pos && !vistaIniziale && !gpsInAttesa && confineComune;
     map = L.map("mappa-form", { scrollWheelZoom: false }).setView(centro, zoom);
+    if (adattaAlComune) centraSulComune();
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -302,8 +362,14 @@
     map.on("click", (e) => impostaPos(e.latlng.lat, e.latlng.lng, "mappa"));
   }
   function centraSulComune() {
-    const c = centroComune();
-    if (c && map) map.setView(c, 13);
+    if (!map) return;
+    if (confineComune) {
+      const [a, b, c, d] = confineComune.b;
+      map.fitBounds([[a, b], [c, d]], { padding: [20, 20], maxZoom: 15 });
+    } else {
+      const c = centroComune();
+      if (c) map.setView(c, 13);
+    }
   }
 
   // ---------- errori ----------
