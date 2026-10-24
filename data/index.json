@@ -1,6 +1,6 @@
 {
  "totale": 13,
- "aggiornato": "2026-10-20",
+ "aggiornato": "2026-10-24",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
   {
@@ -11,8 +11,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.510571,
-   "lon": 10.423032
+   "lat": 45.50023,
+   "lon": 10.42077
   },
   {
    "key": "Calcinato (BS)",
@@ -22,8 +22,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.457182,
-   "lon": 10.413574
+   "lat": 45.45811,
+   "lon": 10.403
   },
   {
    "key": "Carpenedolo (BS)",
@@ -33,8 +33,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.364606,
-   "lon": 10.429385
+   "lat": 45.34919,
+   "lon": 10.43531
   },
   {
    "key": "Desenzano del Garda (BS)",
@@ -44,8 +44,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.469485,
-   "lon": 10.538947
+   "lat": 45.45402,
+   "lon": 10.56422
   },
   {
    "key": "Lonato del Garda (BS)",
@@ -55,8 +55,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 3,
-   "lat": 45.461039,
-   "lon": 10.484535
+   "lat": 45.44256,
+   "lon": 10.49991
   },
   {
    "key": "Muscoline (BS)",
@@ -66,8 +66,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.562485,
-   "lon": 10.461874
+   "lat": 45.55782,
+   "lon": 10.46737
   },
   {
    "key": "Parma (PR)",
@@ -77,8 +77,8 @@
    "provincia": "Parma",
    "regione": "Emilia-Romagna",
    "n": 1,
-   "lat": 44.801368,
-   "lon": 10.328083
+   "lat": 44.79368,
+   "lon": 10.32768
   },
   {
    "key": "Puegnago del Garda (BS)",
@@ -88,8 +88,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 2,
-   "lat": 45.565692,
-   "lon": 10.51147
+   "lat": 45.57112,
+   "lon": 10.51039
   },
   {
    "key": "Serle (BS)",
@@ -99,8 +99,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.570284,
-   "lon": 10.366071
+   "lat": 45.57864,
+   "lon": 10.35834
   },
   {
    "key": "Toscolano-Maderno (BS)",
@@ -110,8 +110,8 @@
    "provincia": "Brescia",
    "regione": "Lombardia",
    "n": 1,
-   "lat": 45.63453,
-   "lon": 10.609521
+   "lat": 45.65692,
+   "lon": 10.60859
   }
  ]
 }

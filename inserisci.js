@@ -455,6 +455,34 @@
     $("gia-box").hidden = false;
   }
 
+  // ---------- anti-duplicati: codice di invio e impronta della foto (calcolati nel browser) ----------
+  function nuovoCodice() {
+    const a = new Uint8Array(16);
+    if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(a);
+    else for (let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 256);
+    return Array.from(a, x => x.toString(16).padStart(2, "0")).join("");
+  }
+  const codiceInvio = nuovoCodice();      // identifica questa compilazione: un secondo tentativo non crea un doppione
+
+  // Impronta a 64 bit ("dHash"): resta quasi uguale se la foto viene ricompressa o ridimensionata, e non permette di ricostruirla
+  function impronta64(sorgente, sx, sy, sw, sh) {
+    try {
+      const c1 = document.createElement("canvas"); c1.width = 72; c1.height = 64;          // due passaggi: risultato stabile anche con foto molto grandi
+      const x1 = c1.getContext("2d"); x1.imageSmoothingQuality = "high";
+      x1.drawImage(sorgente, sx, sy, sw, sh, 0, 0, 72, 64);
+      const c2 = document.createElement("canvas"); c2.width = 9; c2.height = 8;
+      const x2 = c2.getContext("2d", { willReadFrequently: true }); x2.imageSmoothingQuality = "high";
+      x2.drawImage(c1, 0, 0, 72, 64, 0, 0, 9, 8);
+      const px = x2.getImageData(0, 0, 9, 8).data;
+      const g = (i) => 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      let bit = "";
+      for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) bit += g((y * 9 + x) * 4) > g((y * 9 + x + 1) * 4) ? "1" : "0";
+      let hex = "";
+      for (let i = 0; i < 64; i += 4) hex += parseInt(bit.slice(i, i + 4), 2).toString(16);
+      return hex;
+    } catch (_) { return ""; }         // senza impronta il controllo sulla foto non viene fatto
+  }
+
   // ---------- foto: ritaglio, ridimensionamento e pulizia dei dati nascosti (tutto nel browser) ----------
   let soglia = { lungo: 1200, corto: 800 };        // dimensioni minime del ritaglio, in pixel della foto originale
   let imgOrig = null, origL = 0, origA = 0;         // foto intera: resta solo nel browser, non viene inviata
@@ -588,7 +616,8 @@
         lato = 1800;
       }
       if (!dim) { errore("foto", "La foto è troppo pesante anche dopo il ritaglio: scegli una foto più leggera."); return; }
-      foto = { larghezza: dim[0], altezza: dim[1], byte: blob.size, base64: await inBase64(blob) };
+      foto = { larghezza: dim[0], altezza: dim[1], byte: blob.size, base64: await inBase64(blob),
+               imp: impronta64(imgOrig, sx, sy, sw, sh), impIntera: impronta64(imgOrig, 0, 0, origL, origA) };
       $("anteprima").src = URL.createObjectURL(blob);
       $("foto-info").textContent = `Foto pronta: verrà inviata a ${dim[0]}×${dim[1]} px (${Math.round(blob.size / 1024)} KB). Solo questa parte lascia il tuo dispositivo.`;
       $("crop-area").hidden = true; $("foto-pronta").hidden = false;
@@ -672,6 +701,9 @@
       mostra_nome: valoreRadio("credito") === "mostra", nome: $("nome").value,
       email: $("email").value.trim(),
       foto: foto.base64,
+      codice_invio: codiceInvio,
+      impronta: foto.imp || "",
+      impronta_intera: foto.impIntera || "",
       consenso_pubblicazione: $("c-pubblicazione").checked,
       consenso_contenuto: $("c-contenuto").checked,
       consenso_privacy: $("c-privacy").checked,
