@@ -37,6 +37,10 @@
     $("crop-reset").addEventListener("click", () => { r = { x: 0, y: 0, w: 1, h: 1 }; aggiornaRitaglio(); });
     $("crop-modifica").addEventListener("click", modificaRitaglio);
     eventiRitaglio();
+    document.querySelectorAll('input[name="gia"]').forEach(el => el.addEventListener("change", () => {
+      $("gia-avviso").hidden = (valoreRadio("gia") !== "presente");
+      $("err-gia").hidden = true;
+    }));
     document.querySelectorAll('input[name="credito"]').forEach(el =>
       el.addEventListener("change", () => { $("nome-box").hidden = (valoreRadio("credito") !== "mostra"); }));
     $("modulo").addEventListener("focusin", caricaTurnstile, { once: true });
@@ -157,6 +161,7 @@
     if (label !== comuneCorrente) {
       const cambiato = comuneCorrente !== null && label !== null;
       comuneCorrente = label;
+      giaPromessa = aggiornaGiaPresenti(label);
       if (label) {
         if (cambiato) annullaGps();
         caricaConfiniComune(label).then(() => {
@@ -405,6 +410,51 @@
     }));
   }
 
+  // ---------- meridiane già pubblicate nel comune scelto ("È una di queste?") ----------
+  let indiceSito = null;              // etichetta del comune -> { slug, n }, da data/index.json
+  let giaToken = 0, giaAttive = false, giaPromessa = Promise.resolve();
+  const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
+
+  async function caricaIndiceSito() {
+    if (indiceSito !== null) return indiceSito;
+    try {
+      const j = await (await fetch("data/index.json")).json();
+      indiceSito = {};
+      (j.comuni || []).forEach(c => { indiceSito[c.key] = c; });
+    } catch (_) { indiceSito = {}; }
+    return indiceSito;
+  }
+  async function aggiornaGiaPresenti(label) {
+    const token = ++giaToken;
+    giaAttive = false;
+    $("gia-box").hidden = true; $("gia-avviso").hidden = true; $("err-gia").hidden = true;
+    document.querySelectorAll('input[name="gia"]').forEach(el => { el.checked = false; });
+    if (!label) return;
+    const c = (await caricaIndiceSito())[label];
+    if (!c || !c.n) return;                                   // nessuna meridiana pubblicata: niente da controllare
+    let items;
+    try {
+      const r = await fetch(`data/comuni/${c.slug}.json`);
+      if (!r.ok) return;
+      items = await r.json();
+    } catch (_) { return; }                                   // senza elenco il modulo funziona comunque
+    if (token !== giaToken || !items.length) return;
+    $("gia-intro").textContent = items.length === 1
+      ? `Nel catalogo c'è già 1 meridiana in ${label}. Controlla se la tua è questa:`
+      : `Nel catalogo ci sono già ${items.length} meridiane in ${label}. Controlla se la tua è tra queste:`;
+    $("gia-lista").innerHTML = items.map((it, i) => {
+      const stem = String(it.foto || "").split("/").pop().replace(/\.[^.]+$/, "");
+      const sotto = [it.localita, /^\d{4}$/.test(String(it["anno fotografia"]).trim()) ? "foto " + it["anno fotografia"] : ""].filter(Boolean).join(" · ");
+      return `<li class="gia-voce">
+        <img src="catalogo/thumbs/${esc(stem)}.jpg" onerror="this.onerror=null;this.src='catalogo/medie/${esc(stem)}.jpg'" alt="" loading="lazy" width="64" height="64">
+        <span class="gia-testo"><strong>${items.length > 1 ? "Meridiana " + (i + 1) : "Meridiana"}</strong>
+          ${it.motto ? `<span>“${esc(it.motto)}”</span>` : ""}${sotto ? `<span>${esc(sotto)}</span>` : ""}
+          <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></li>`;
+    }).join("");
+    giaAttive = true;
+    $("gia-box").hidden = false;
+  }
+
   // ---------- foto: ritaglio, ridimensionamento e pulizia dei dati nascosti (tutto nel browser) ----------
   let soglia = { lungo: 1200, corto: 800 };        // dimensioni minime del ritaglio, in pixel della foto originale
   let imgOrig = null, origL = 0, origA = 0;         // foto intera: resta solo nel browser, non viene inviata
@@ -580,6 +630,11 @@
     const segna = (campo, msg, elId) => { errore(campo, msg); if (!primo) primo = $(elId || campo); };
 
     if (!trovaEsatto($("comune").value)) segna("comune", "Scegli il comune dall'elenco dei suggerimenti.", "comune");
+    if (giaAttive) {
+      const g = valoreRadio("gia");
+      if (!g) segna("gia", "Indica se la tua meridiana è una di quelle già presenti.", "gia-box");
+      else if (g === "presente") segna("gia", "Se la meridiana è già nel catalogo non serve inviarla di nuovo (vedi il messaggio qui sopra).", "gia-box");
+    }
     const anno = $("anno").value.trim();
     if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scrivi un anno di quattro cifre, oppure lascia vuoto.", "anno");
     if (!valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
@@ -605,6 +660,7 @@
     ev.preventDefault();
     if (inviando) return;
     stato("");
+    await giaPromessa;                                        // l'elenco delle meridiane già presenti deve essere pronto
     if (!valida()) return;
     inviando = true; $("invia").disabled = true;
     stato("Invio in corso… non chiudere la pagina.");
@@ -621,6 +677,7 @@
       consenso_privacy: $("c-privacy").checked,
       posizione: pos ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
       indicazioni: $("indicazioni").value,
+      verifica_catalogo: giaAttive ? valoreRadio("gia") : "nessuna",   // risposta a "È una di queste?"
       sito_web: $("sito_web").value,
       turnstile: tsToken
     };

@@ -49,6 +49,18 @@
         <p class="err" id="err-comune" hidden></p>
       </div>
 
+      <fieldset class="field" id="gia-box" hidden>
+        <legend>Meridiane già presenti in questo comune</legend>
+        <p class="hint" id="gia-intro"></p>
+        <ul id="gia-lista" class="gia-lista"></ul>
+        <label class="choice"><input type="radio" name="gia" value="diversa"><span><strong>No</strong>, la mia è una meridiana diversa da queste</span></label>
+        <label class="choice"><input type="radio" name="gia" value="presente"><span><strong>Sì</strong>, la mia è una di queste</span></label>
+        <div id="gia-avviso" class="notice" hidden>
+          <p><strong>Grazie!</strong> Se è già nel catalogo non serve inviarla di nuovo. Se la tua foto mostra qualcosa di diverso o di migliore (un altro lato, un dettaglio, la meridiana restaurata), scrivimi a <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>.</p>
+        </div>
+        <p class="err" id="err-gia" hidden></p>
+      </fieldset>
+
       <div class="field">
         <label for="localita">Località o frazione</label>
         <input id="localita" type="text" maxlength="120" autocomplete="off">

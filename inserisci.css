@@ -25,3 +25,14 @@
 .crop-warning[hidden] { display: none; }
 .crop-stage.troppo-piccolo .crop-box { border-color: #a3321c; box-shadow: none; }
 #crop-info.bad { color: #a3321c; font-weight: 700; }
+
+/* Elenco "Meridiane già presenti in questo comune" */
+.gia-lista { list-style: none; margin: 10px 0 14px; padding: 0; display: grid; gap: 8px; max-height: 360px; overflow-y: auto; }
+.gia-voce { display: flex; gap: 12px; align-items: flex-start; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.gia-voce img { flex: none; width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: #e6dccb; }
+.gia-testo { display: flex; flex-direction: column; gap: 2px; min-width: 0; font: 14px/1.4 Arial, sans-serif; }
+.gia-testo strong { font-size: 15px; }
+.gia-testo span { color: var(--muted); }
+.gia-testo a { font-weight: 700; }
+#gia-box[hidden], #gia-avviso[hidden] { display: none; }
+
