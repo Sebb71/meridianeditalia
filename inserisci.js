@@ -3,11 +3,11 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-  const MAX_LATO = 1600, MAX_BYTE = 3 * 1024 * 1024;
+  const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024, MIN_ORIGINALE = 800;   // lato massimo inviato, peso massimo, lato minimo della foto scelta
 
   let cfg = null;
   let elenco = [], elencoNorm = [], centri = [];
-  let foto = null;               // { base64, byte, larghezza, altezza }
+  let foto = null;               // ritaglio confermato, pronto da inviare: { base64, byte, larghezza, altezza }
   let tsToken = "", tsCaricato = false, inviando = false;
   let pos = null, gpsTemp = null, gpsInAttesa = false, map = null, marcatore = null, cerchioGps = null, cerchioArea = null;
   let mapConsent = false, leafletPromise = null, comuneCorrente = null;
@@ -19,6 +19,7 @@
       cfg = r.ok ? await r.json() : null;
     } catch (_) { cfg = null; }
     if (!cfg || !cfg.attivo) { $("form-off").hidden = false; return; }
+    if (cfg.ritaglio) soglia = { lungo: cfg.ritaglio.lungo || soglia.lungo, corto: cfg.ritaglio.corto || soglia.corto };
 
     $("modulo").hidden = false;
     if (cfg.sitekey) $("ts-hint").hidden = false;
@@ -32,6 +33,10 @@
 
     $("comune").addEventListener("input", suggerisci);
     $("foto").addEventListener("change", sceltaFoto);
+    $("crop-ok").addEventListener("click", confermaRitaglio);
+    $("crop-reset").addEventListener("click", () => { r = { x: 0, y: 0, w: 1, h: 1 }; aggiornaRitaglio(); });
+    $("crop-modifica").addEventListener("click", modificaRitaglio);
+    eventiRitaglio();
     document.querySelectorAll('input[name="credito"]').forEach(el =>
       el.addEventListener("change", () => { $("nome-box").hidden = (valoreRadio("credito") !== "mostra"); }));
     $("modulo").addEventListener("focusin", caricaTurnstile, { once: true });
@@ -400,7 +405,14 @@
     }));
   }
 
-  // ---------- foto: ridimensionamento e pulizia dei dati nascosti ----------
+  // ---------- foto: ritaglio, ridimensionamento e pulizia dei dati nascosti (tutto nel browser) ----------
+  let soglia = { lungo: 1200, corto: 800 };        // dimensioni minime del ritaglio, in pixel della foto originale
+  let imgOrig = null, origL = 0, origA = 0;         // foto intera: resta solo nel browser, non viene inviata
+  let r = { x: 0, y: 0, w: 1, h: 1 };               // rettangolo di ritaglio, in frazioni (0-1) dell'immagine
+  let ritaglioValido = true, trascina = null;
+  const MIN_FRAZ = 0.04;
+  const limita = (v, a, b) => Math.max(a, Math.min(b, v));
+
   async function decodifica(file) {
     if (window.createImageBitmap) {
       try { return await createImageBitmap(file); } catch (_) { /* si prova con <img> */ }
@@ -417,40 +429,129 @@
   }
   function inBase64(blob) {
     return new Promise((ok, ko) => {
-      const r = new FileReader();
-      r.onload = () => ok(String(r.result).split(",")[1]);
-      r.onerror = () => ko(new Error("lettura non riuscita"));
-      r.readAsDataURL(blob);
+      const rd = new FileReader();
+      rd.onload = () => ok(String(rd.result).split(",")[1]);
+      rd.onerror = () => ko(new Error("lettura non riuscita"));
+      rd.readAsDataURL(blob);
     });
   }
+
+  function azzeraFoto() {
+    foto = null;
+    if (imgOrig && imgOrig.close) { try { imgOrig.close(); } catch (_) { /* nessuna azione */ } }
+    imgOrig = null;
+    $("crop-area").hidden = true; $("foto-pronta").hidden = true; $("err-foto").hidden = true;
+  }
+
   async function sceltaFoto() {
     const file = $("foto").files[0];
-    foto = null; $("anteprima").hidden = true; $("foto-info").hidden = true; $("err-foto").hidden = true;
+    azzeraFoto();
     if (!file) return;
     if (file.type && !file.type.startsWith("image/")) { errore("foto", "Il file scelto non è un'immagine."); return; }
     try {
       const img = await decodifica(file);
-      let lato = MAX_LATO, blob = null;
-      for (const q of [0.85, 0.72, 0.6, 0.5]) {
-        const w0 = img.width || img.naturalWidth, h0 = img.height || img.naturalHeight;
-        const s = Math.min(1, lato / Math.max(w0, h0));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(w0 * s)); canvas.height = Math.max(1, Math.round(h0 * s));
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);   // ridisegnando si perdono i metadati (GPS compreso)
-        blob = await toBlob(canvas, q);
-        if (blob && blob.size <= MAX_BYTE) { foto = { larghezza: canvas.width, altezza: canvas.height }; break; }
-        lato = 1200;
+      const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight;
+      if (Math.max(w, h) < MIN_ORIGINALE) {
+        errore("foto", `La foto è troppo piccola (${w}×${h} px): serve almeno ${MIN_ORIGINALE} px sul lato lungo.`);
+        return;
       }
-      if (!foto || !blob || blob.size > MAX_BYTE) { foto = null; errore("foto", "La foto è troppo pesante anche dopo il ridimensionamento."); return; }
-      foto.byte = blob.size;
-      foto.base64 = await inBase64(blob);
-      $("anteprima").src = URL.createObjectURL(blob); $("anteprima").hidden = false;
-      $("foto-info").textContent = `Verrà inviata a ${foto.larghezza}×${foto.altezza} px (${Math.round(blob.size / 1024)} KB).`;
-      $("foto-info").hidden = false;
+      imgOrig = img; origL = w; origA = h;
+      r = { x: 0, y: 0, w: 1, h: 1 };
+      const canvas = $("crop-canvas"), sc = Math.min(1, 1400 / Math.max(w, h));      // anteprima leggera per il ritaglio
+      canvas.width = Math.round(w * sc); canvas.height = Math.round(h * sc);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      $("crop-area").hidden = false;
+      aggiornaRitaglio();
     } catch (_) {
-      foto = null;
       errore("foto", "Non riesco a leggere questa immagine. Prova con una foto JPG o PNG.");
     }
+  }
+
+  // Aggiorna rettangolo, misure e avviso: sotto la soglia la foto viene coperta da un velo con la scritta
+  function aggiornaRitaglio() {
+    const box = $("crop-box");
+    box.style.left = (r.x * 100) + "%"; box.style.top = (r.y * 100) + "%";
+    box.style.width = (r.w * 100) + "%"; box.style.height = (r.h * 100) + "%";
+    box.classList.toggle("pieno", r.w > 0.999 && r.h > 0.999);
+
+    const sw = r.w * origL, sh = r.h * origA;
+    const sL = Math.min(soglia.lungo, Math.max(origL, origA)), sC = Math.min(soglia.corto, Math.min(origL, origA));
+    ritaglioValido = Math.max(sw, sh) >= sL * 0.995 && Math.min(sw, sh) >= sC * 0.995;
+    $("crop-stage").classList.toggle("troppo-piccolo", !ritaglioValido);
+    $("crop-warning").hidden = ritaglioValido;
+    $("crop-ok").disabled = !ritaglioValido;
+    const info = $("crop-info");
+    info.textContent = `Ritaglio: ${Math.round(sw)}×${Math.round(sh)} px. Minimo richiesto: ${sL} px sul lato lungo e ${sC} px sul lato corto.`;
+    info.classList.toggle("bad", !ritaglioValido);
+  }
+
+  function iniziaTrascinamento(ev, modo) {
+    ev.preventDefault();
+    const b = $("crop-stage").getBoundingClientRect();
+    trascina = { modo, px: (ev.clientX - b.left) / b.width, py: (ev.clientY - b.top) / b.height, r0: { ...r }, id: ev.pointerId };
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+  }
+  function muovi(ev) {
+    if (!trascina || ev.pointerId !== trascina.id) return;
+    const b = $("crop-stage").getBoundingClientRect();
+    const dx = (ev.clientX - b.left) / b.width - trascina.px, dy = (ev.clientY - b.top) / b.height - trascina.py;
+    const r0 = trascina.r0, m = trascina.modo;
+    let x1 = r0.x, y1 = r0.y, x2 = r0.x + r0.w, y2 = r0.y + r0.h;
+    if (m === "move") {
+      x1 = limita(r0.x + dx, 0, 1 - r0.w); x2 = x1 + r0.w;
+      y1 = limita(r0.y + dy, 0, 1 - r0.h); y2 = y1 + r0.h;
+    } else {
+      if (m.includes("w")) x1 = limita(r0.x + dx, 0, x2 - MIN_FRAZ);
+      if (m.includes("e")) x2 = limita(r0.x + r0.w + dx, x1 + MIN_FRAZ, 1);
+      if (m.includes("n")) y1 = limita(r0.y + dy, 0, y2 - MIN_FRAZ);
+      if (m.includes("s")) y2 = limita(r0.y + r0.h + dy, y1 + MIN_FRAZ, 1);
+    }
+    r = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+    aggiornaRitaglio();
+  }
+  function fineTrascinamento(ev) { if (trascina && ev.pointerId === trascina.id) trascina = null; }
+  function eventiRitaglio() {
+    [$("crop-corpo"), ...document.querySelectorAll("#crop-box .h")].forEach(el => {
+      el.addEventListener("pointerdown", (ev) => iniziaTrascinamento(ev, el.dataset.h || "move"));
+      el.addEventListener("pointermove", muovi);
+      el.addEventListener("pointerup", fineTrascinamento);
+      el.addEventListener("pointercancel", fineTrascinamento);
+    });
+  }
+
+  // Ricava il ritaglio dalla foto ORIGINALE (non dall'anteprima), lo porta a MAX_LATO al massimo e lo comprime
+  async function confermaRitaglio() {
+    if (!imgOrig || !ritaglioValido) return;
+    $("crop-ok").disabled = true; $("err-foto").hidden = true;
+    try {
+      const sx = Math.round(r.x * origL), sy = Math.round(r.y * origA);
+      const sw = Math.max(1, Math.min(origL - sx, Math.round(r.w * origL)));
+      const sh = Math.max(1, Math.min(origA - sy, Math.round(r.h * origA)));
+      let lato = MAX_LATO, blob = null, dim = null;
+      for (const q of [0.85, 0.72, 0.6, 0.5]) {
+        const s = Math.min(1, lato / Math.max(sw, sh));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sw * s)); canvas.height = Math.max(1, Math.round(sh * s));
+        canvas.getContext("2d").drawImage(imgOrig, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);  // ridisegnando si perdono i metadati (GPS compreso)
+        blob = await toBlob(canvas, q);
+        if (blob && blob.size <= MAX_BYTE) { dim = [canvas.width, canvas.height]; break; }
+        lato = 1800;
+      }
+      if (!dim) { errore("foto", "La foto è troppo pesante anche dopo il ritaglio: scegli una foto più leggera."); return; }
+      foto = { larghezza: dim[0], altezza: dim[1], byte: blob.size, base64: await inBase64(blob) };
+      $("anteprima").src = URL.createObjectURL(blob);
+      $("foto-info").textContent = `Foto pronta: verrà inviata a ${dim[0]}×${dim[1]} px (${Math.round(blob.size / 1024)} KB). Solo questa parte lascia il tuo dispositivo.`;
+      $("crop-area").hidden = true; $("foto-pronta").hidden = false;
+    } catch (_) {
+      errore("foto", "Non sono riuscito a preparare il ritaglio. Riprova, oppure scegli un'altra foto.");
+    } finally {
+      $("crop-ok").disabled = !ritaglioValido;
+    }
+  }
+  function modificaRitaglio() {
+    if (!imgOrig) { $("foto").click(); return; }       // pagina ricaricata: serve scegliere di nuovo la foto
+    foto = null; $("foto-pronta").hidden = true; $("crop-area").hidden = false;
+    aggiornaRitaglio();
   }
 
   // ---------- antispam (Cloudflare Turnstile), caricato quando si inizia a compilare ----------
@@ -482,7 +583,7 @@
     const anno = $("anno").value.trim();
     if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scrivi un anno di quattro cifre, oppure lascia vuoto.", "anno");
     if (!valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
-    if (!foto) segna("foto", "Scegli la fotografia.", "foto");
+    if (!foto) { if (imgOrig) segna("foto", "Conferma il ritaglio con il pulsante «Conferma ritaglio».", "crop-ok"); else segna("foto", "Scegli la fotografia.", "foto"); }
     const cred = valoreRadio("credito");
     if (!cred) segna("credito", "Indica se vuoi che compaia il tuo nome.", "modulo");
     else if (cred === "mostra" && !$("nome").value.trim()) segna("credito", "Scrivi il nome da mostrare.", "nome");

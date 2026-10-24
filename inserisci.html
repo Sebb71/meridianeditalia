@@ -17,6 +17,7 @@
   <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/meridiana_001.jpg">
   <!--GC--><!--/GC-->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="inserisci.css">
 </head>
 <body>
   <header class="topbar">
@@ -122,9 +123,34 @@
       <div class="field">
         <label for="foto">Fotografia *</label>
         <input id="foto" type="file" accept="image/*">
-        <p class="hint">La foto viene ridimensionata e privata dei dati nascosti (come la posizione GPS) direttamente sul tuo dispositivo, prima dell'invio.</p>
-        <img id="anteprima" class="anteprima" alt="Anteprima della fotografia" hidden>
-        <p class="hint" id="foto-info" hidden></p>
+        <p class="hint">Dopo averla scelta potrai ritagliarla sulla meridiana. La foto viene ritagliata, ridimensionata e privata dei dati nascosti (come la posizione GPS) direttamente sul tuo dispositivo: al sito arriva <strong>solo la parte che selezioni</strong>.</p>
+
+        <div id="crop-area" hidden>
+          <p class="hint">Trascina gli angoli e i lati del rettangolo per lasciare la meridiana con pochissimo intorno; trascinando dentro il rettangolo lo sposti. Per scorrere la pagina tocca fuori dal rettangolo. Se la foto è già inquadrata bene, conferma senza cambiare nulla.</p>
+          <div id="crop-wrap" class="crop-wrap">
+            <div id="crop-stage" class="crop-stage">
+              <canvas id="crop-canvas"></canvas>
+              <div id="crop-warning" class="crop-warning" hidden><p>Ritaglio troppo piccolo: la foto risulterebbe sfocata.<br>Ingrandisci il rettangolo trascinando gli angoli.</p></div>
+              <div id="crop-box" class="crop-box pieno">
+                <div id="crop-corpo" class="corpo"></div>
+                <span class="h" data-h="nw"></span><span class="h" data-h="n"></span><span class="h" data-h="ne"></span>
+                <span class="h" data-h="e"></span><span class="h" data-h="se"></span><span class="h" data-h="s"></span>
+                <span class="h" data-h="sw"></span><span class="h" data-h="w"></span>
+              </div>
+            </div>
+          </div>
+          <p class="hint" id="crop-info"></p>
+          <div class="pos-actions">
+            <button type="button" id="crop-ok" class="secondary-btn strong">Conferma ritaglio</button>
+            <button type="button" id="crop-reset" class="secondary-btn">Usa la foto intera</button>
+          </div>
+        </div>
+
+        <div id="foto-pronta" hidden>
+          <img id="anteprima" class="anteprima" alt="Anteprima del ritaglio">
+          <p class="hint" id="foto-info"></p>
+          <button type="button" id="crop-modifica" class="link-btn">Modifica il ritaglio</button>
+        </div>
         <p class="err" id="err-foto" hidden></p>
       </div>
 

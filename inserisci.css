@@ -1,0 +1,27 @@
+/* Ritaglio della foto nel modulo "Inserisci la tua meridiana" */
+.crop-wrap { margin: 10px 0 0; padding: 20px; overflow: hidden; border-radius: 12px; background: #2b2723;
+  -webkit-user-select: none; user-select: none; }
+.crop-stage { position: relative; line-height: 0; }
+.crop-stage canvas { display: block; width: 100%; height: auto; }
+.crop-box { position: absolute; z-index: 3; box-sizing: border-box; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .55); }
+.crop-box .corpo { position: absolute; inset: 0; cursor: move; touch-action: none; }
+.crop-box.pieno .corpo { pointer-events: none; }          /* a foto intera non c'è nulla da spostare: la pagina si può scorrere */
+.crop-box .h { position: absolute; width: 40px; height: 40px; touch-action: none; }
+.crop-box .h::after { content: ""; position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  box-sizing: border-box; border: 2px solid var(--accent); border-radius: 4px; background: #fff; }
+.h[data-h="nw"] { left: -20px; top: -20px; cursor: nwse-resize; }
+.h[data-h="ne"] { right: -20px; top: -20px; cursor: nesw-resize; }
+.h[data-h="sw"] { left: -20px; bottom: -20px; cursor: nesw-resize; }
+.h[data-h="se"] { right: -20px; bottom: -20px; cursor: nwse-resize; }
+.h[data-h="n"] { left: 50%; top: -20px; margin-left: -20px; cursor: ns-resize; }
+.h[data-h="s"] { left: 50%; bottom: -20px; margin-left: -20px; cursor: ns-resize; }
+.h[data-h="w"] { left: -20px; top: 50%; margin-top: -20px; cursor: ew-resize; }
+.h[data-h="e"] { right: -20px; top: 50%; margin-top: -20px; cursor: ew-resize; }
+/* sotto la soglia: la foto si sbiadisce e compare l'avviso (le maniglie restano usabili) */
+.crop-warning { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
+  padding: 16px; text-align: center; background: rgba(255, 255, 255, .92); color: #7d2514;
+  font: 700 17px/1.45 Arial, sans-serif; pointer-events: none; }
+.crop-warning p { margin: 0; }
+.crop-warning[hidden] { display: none; }
+.crop-stage.troppo-piccolo .crop-box { border-color: #a3321c; box-shadow: none; }
+#crop-info.bad { color: #a3321c; font-weight: 700; }
