@@ -1,5 +1,5 @@
 {
- "totale": 14,
+ "totale": 12,
  "aggiornato": "2026-10-25",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
@@ -81,17 +81,6 @@
    "lon": 10.46737
   },
   {
-   "key": "Parma (PR)",
-   "slug": "parma-pr",
-   "nome": "Parma",
-   "sigla": "PR",
-   "provincia": "Parma",
-   "regione": "Emilia-Romagna",
-   "n": 1,
-   "lat": 44.79368,
-   "lon": 10.32768
-  },
-  {
    "key": "Puegnago del Garda (BS)",
    "slug": "puegnago-del-garda-bs",
    "nome": "Puegnago del Garda",
@@ -112,17 +101,6 @@
    "n": 1,
    "lat": 45.57864,
    "lon": 10.35834
-  },
-  {
-   "key": "Toscolano-Maderno (BS)",
-   "slug": "toscolano-maderno-bs",
-   "nome": "Toscolano-Maderno",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.65692,
-   "lon": 10.60859
   }
  ]
 }
