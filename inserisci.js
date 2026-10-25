@@ -3,7 +3,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-  const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024, MIN_ORIGINALE = 800;   // lato massimo inviato, peso massimo, lato minimo della foto scelta
+  const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024;   // lato massimo inviato, peso massimo
 
   let cfg = null;
   let elenco = [], elencoNorm = [], centri = [];
@@ -19,7 +19,12 @@
       cfg = r.ok ? await r.json() : null;
     } catch (_) { cfg = null; }
     if (!cfg || !cfg.attivo) { $("form-off").hidden = false; return; }
-    if (cfg.ritaglio) soglia = { lungo: cfg.ritaglio.lungo || soglia.lungo, corto: cfg.ritaglio.corto || soglia.corto };
+    if (cfg.ritaglio) {
+      const lungo = cfg.ritaglio.lungo || soglia.lungo, corto = cfg.ritaglio.corto || soglia.corto;
+      soglia = { lungo, corto,
+                 consLungo: Math.max(lungo, cfg.ritaglio.consigliato_lungo || soglia.consLungo),
+                 consCorto: Math.max(corto, cfg.ritaglio.consigliato_corto || soglia.consCorto) };
+    }
 
     $("modulo").hidden = false;
     if (cfg.sitekey) $("ts-hint").hidden = false;
@@ -484,10 +489,11 @@
   }
 
   // ---------- foto: ritaglio, ridimensionamento e pulizia dei dati nascosti (tutto nel browser) ----------
-  let soglia = { lungo: 1200, corto: 800 };        // dimensioni minime del ritaglio, in pixel della foto originale
+  // minimo = sotto questo il ritaglio e' bloccato; consigliato = sotto questo e' accettato con un avviso gentile
+  let soglia = { lungo: 800, corto: 600, consLungo: 1200, consCorto: 800 };
   let imgOrig = null, origL = 0, origA = 0;         // foto intera: resta solo nel browser, non viene inviata
   let r = { x: 0, y: 0, w: 1, h: 1 };               // rettangolo di ritaglio, in frazioni (0-1) dell'immagine
-  let ritaglioValido = true, trascina = null;
+  let ritaglioValido = true, ritaglioPiccolo = false, trascina = null;
   const MIN_FRAZ = 0.04;
   const limita = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -529,8 +535,8 @@
     try {
       const img = await decodifica(file);
       const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight;
-      if (Math.max(w, h) < MIN_ORIGINALE) {
-        errore("foto", `La foto è troppo piccola (${w}×${h} px): serve almeno ${MIN_ORIGINALE} px sul lato lungo.`);
+      if (Math.max(w, h) < soglia.lungo) {
+        errore("foto", `La foto è troppo piccola (${w}×${h} px): serve almeno ${soglia.lungo} px sul lato lungo.`);
         return;
       }
       imgOrig = img; origL = w; origA = h;
@@ -558,9 +564,13 @@
     $("crop-stage").classList.toggle("troppo-piccolo", !ritaglioValido);
     $("crop-warning").hidden = ritaglioValido;
     $("crop-ok").disabled = !ritaglioValido;
+    const cL = soglia.consLungo, cC = soglia.consCorto;
+    ritaglioPiccolo = ritaglioValido && !(Math.max(sw, sh) >= cL * 0.995 && Math.min(sw, sh) >= cC * 0.995);
     const info = $("crop-info");
-    info.textContent = `Ritaglio: ${Math.round(sw)}×${Math.round(sh)} px. Minimo richiesto: ${sL} px sul lato lungo e ${sC} px sul lato corto.`;
+    info.textContent = `Ritaglio: ${Math.round(sw)}×${Math.round(sh)} px. Minimo: ${sL} px sul lato lungo e ${sC} px sul lato corto.`;
     info.classList.toggle("bad", !ritaglioValido);
+    const lieve = $("crop-soft");
+    if (lieve) lieve.hidden = !ritaglioPiccolo;
   }
 
   function iniziaTrascinamento(ev, modo) {
@@ -702,6 +712,7 @@
       email: $("email").value.trim(),
       foto: foto.base64,
       codice_invio: codiceInvio,
+      larghezza_ritaglio: foto.larghezza, altezza_ritaglio: foto.altezza,
       impronta: foto.imp || "",
       impronta_intera: foto.impIntera || "",
       consenso_pubblicazione: $("c-pubblicazione").checked,

@@ -135,6 +135,7 @@
       <div class="field">
         <label for="foto">Fotografia *</label>
         <input id="foto" type="file" accept="image/*">
+        <p class="hint"><strong>Avvicinati alla meridiana e/o usa lo zoom prima di scattare: ingrandire dopo peggiora la qualità.</strong></p>
         <p class="hint">Dopo averla scelta potrai ritagliarla sulla meridiana. La foto viene ritagliata, ridimensionata e privata dei dati nascosti (come la posizione GPS) direttamente sul tuo dispositivo: al sito arriva <strong>solo la parte che selezioni</strong>.</p>
 
         <div id="crop-area" hidden>
@@ -152,6 +153,7 @@
             </div>
           </div>
           <p class="hint" id="crop-info"></p>
+          <p class="hint crop-soft" id="crop-soft" hidden>Il ritaglio è piccolo: va bene, ma la foto sarà poco nitida. Se puoi, ingrandisci il rettangolo, oppure avvicinati o usa lo zoom quando scatti.</p>
           <div class="pos-actions">
             <button type="button" id="crop-ok" class="secondary-btn strong">Conferma ritaglio</button>
             <button type="button" id="crop-reset" class="secondary-btn">Usa la foto intera</button>
