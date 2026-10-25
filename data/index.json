@@ -1,5 +1,5 @@
 {
- "totale": 13,
+ "totale": 14,
  "aggiornato": "2026-10-25",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
@@ -35,6 +35,17 @@
    "n": 1,
    "lat": 45.34919,
    "lon": 10.43531
+  },
+  {
+   "key": "Castellucchio (MN)",
+   "slug": "castellucchio-mn",
+   "nome": "Castellucchio",
+   "sigla": "MN",
+   "provincia": "Mantova",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.14824,
+   "lon": 10.63339
   },
   {
    "key": "Desenzano del Garda (BS)",
