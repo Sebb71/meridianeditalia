@@ -1,0 +1,31 @@
+/* Menu a tre lineette (vedi menu.js). Usa i colori del sito (variabili di style.css) con valori di riserva. */
+.topbar { display: flex; align-items: center; gap: 12px; }
+.topbar .brand { flex: 1 1 auto; min-width: 0; }
+
+.menu-btn { flex: none; margin-left: auto; display: inline-flex; flex-direction: column; justify-content: center; gap: 5px;
+  width: 44px; height: 44px; padding: 0 11px; box-sizing: border-box; cursor: pointer;
+  border: 1px solid var(--line, #ddd2c1); border-radius: 10px; background: transparent; color: var(--ink, #28241f);
+  -webkit-tap-highlight-color: transparent; }
+.menu-btn span { display: block; height: 2px; border-radius: 2px; background: currentColor; }
+.menu-btn:hover { background: rgba(0, 0, 0, .05); }
+.menu-btn:focus-visible, .menu-chiudi:focus-visible, .menu-lista a:focus-visible { outline: 3px solid var(--accent, #b46b31); outline-offset: 2px; }
+.menu-btn.flottante { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: 8px; z-index: 900; background: var(--card, #fffdf8); }
+
+.menu-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, .45); opacity: 0; transition: opacity .2s; }
+.menu-overlay.aperto { opacity: 1; }
+.menu-overlay[hidden] { display: none; }
+.menu-pannello { position: absolute; top: 0; right: 0; bottom: 0; width: min(86vw, 340px); box-sizing: border-box; overflow-y: auto;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+  background: var(--card, #fffdf8); color: var(--ink, #28241f); box-shadow: -6px 0 24px rgba(0, 0, 0, .25);
+  transform: translateX(100%); transition: transform .22s; font-family: Arial, sans-serif; }
+.menu-overlay.aperto .menu-pannello { transform: none; }
+.menu-testa { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--line, #ddd2c1); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, #71685e); }
+.menu-chiudi { width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: inherit; font-size: 30px; line-height: 1; cursor: pointer; }
+.menu-lista { list-style: none; margin: 0; padding: 0; }
+.menu-lista a { display: block; padding: 15px 20px; border-bottom: 1px solid var(--line, #ddd2c1); border-left: 4px solid transparent;
+  color: inherit; text-decoration: none; font-size: 17px; line-height: 1.35; }
+.menu-lista a:hover { background: rgba(0, 0, 0, .04); }
+.menu-lista a[aria-current="page"] { font-weight: 700; border-left-color: var(--accent, #b46b31); }
+body.menu-aperto { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .menu-overlay, .menu-pannello { transition: none; } }
