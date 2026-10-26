@@ -46,6 +46,7 @@
       $("gia-avviso").hidden = (valoreRadio("gia") !== "presente");
       $("err-gia").hidden = true;
     }));
+    $("anno").value = String(new Date().getFullYear());      // anno corrente proposto di default (modificabile)
     document.querySelectorAll('input[name="credito"]').forEach(el =>
       el.addEventListener("change", () => { $("nome-box").hidden = (valoreRadio("credito") !== "mostra"); }));
     $("modulo").addEventListener("focusin", caricaTurnstile, { once: true });
@@ -531,7 +532,9 @@
     const file = $("foto").files[0];
     azzeraFoto();
     if (!file) return;
-    if (file.type && !file.type.startsWith("image/")) { errore("foto", "Il file scelto non è un'immagine."); return; }
+    const estOk = /\.(jpe?g|png|webp)$/i.test(file.name || "");
+    const tipoOk = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
+    if (!(file.type ? tipoOk : estOk)) { errore("foto", "Formato non ammesso: scegli un file jpg, jpeg, png o webp."); return; }
     try {
       const img = await decodifica(file);
       const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight;

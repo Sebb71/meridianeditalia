@@ -15,7 +15,7 @@
   <meta property="og:description" content="Hai fotografato una meridiana? Proponila per l'Atlante delle Meridiane.">
   <meta property="og:url" content="https://sebb71.github.io/meridianeditalia/inserisci.html">
   <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/meridiana_001.jpg">
-  <!--GC--><script data-goatcounter="https://meridianeditalia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><!--/GC-->
+  <!--GC--><!--/GC-->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="inserisci.css">
 </head>
@@ -129,12 +129,12 @@
 
       <div class="field">
         <label for="note">Note</label>
-        <textarea id="note" rows="3" maxlength="1000" placeholder="Qualsiasi dettaglio utile: dove si trova, cosa dice l'iscrizione…"></textarea>
+        <textarea id="note" rows="3" maxlength="1000" placeholder="Facoltativo. Descrivi quello che vedi e che sai della meridiana, o anche quali sentimenti ti suscita"></textarea>
       </div>
 
       <div class="field">
-        <label for="foto">Fotografia *</label>
-        <input id="foto" type="file" accept="image/*">
+        <label for="foto">Fotografia * (formati ammessi jpg, jpeg, png, webp)</label>
+        <input id="foto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
         <p class="hint"><strong>Avvicinati alla meridiana e/o usa lo zoom prima di scattare: ingrandire dopo peggiora la qualità.</strong></p>
         <p class="hint">Dopo averla scelta potrai ritagliarla sulla meridiana. La foto viene ritagliata, ridimensionata e privata dei dati nascosti (come la posizione GPS) direttamente sul tuo dispositivo: al sito arriva <strong>solo la parte che selezioni</strong>.</p>
 
@@ -170,7 +170,7 @@
 
       <fieldset class="field">
         <legend>Vuoi che il tuo nome compaia come autore della foto? *</legend>
-        <label class="choice"><input type="radio" name="credito" value="mostra"><span>Sì, mostra il mio nome</span></label>
+        <label class="choice"><input type="radio" name="credito" value="mostra"><span>Sì, mostra il mio nome o pseudonimo che ti indico di seguito</span></label>
         <label class="choice"><input type="radio" name="credito" value="anonimo"><span>No, preferisco restare anonimo (la foto sarà accreditata come «Autore anonimo»)</span></label>
         <div id="nome-box" hidden>
           <label for="nome">Nome da mostrare (può essere anche uno pseudonimo)</label>
@@ -191,7 +191,7 @@
       <fieldset class="field checks">
         <legend class="sr-only">Conferme</legend>
         <label class="choice"><input type="checkbox" id="c-pubblicazione">
-          <span>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e autorizzo la sua pubblicazione sul sito Atlante delle Meridiane, con il credito che ho scelto. *</span></label>
+          <span>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e concedo all'Atlante delle Meridiane il permesso gratuito e non esclusivo di pubblicarla sul sito, con il credito che ho scelto<!--WM-TESTO--><!--/WM-TESTO-->. Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo e non per la vendita delle foto. Il copyright resta mio e posso chiedere in qualsiasi momento la rimozione della foto e la cancellazione dei miei dati. Se il progetto verrà ceduto, il nuovo titolare riceverà anche il mio nome e il mio indirizzo e-mail, per poter continuare a contattarmi. *</span></label>
         <label class="choice"><input type="checkbox" id="c-contenuto">
           <span>Nella fotografia non ci sono persone riconoscibili né targhe leggibili. *</span></label>
         <label class="choice"><input type="checkbox" id="c-privacy">
