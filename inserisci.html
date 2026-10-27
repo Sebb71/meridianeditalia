@@ -46,7 +46,6 @@
         <label for="comune">Comune *</label>
         <input id="comune" type="text" autocomplete="off" placeholder="Scrivi il nome e scegli dall'elenco" maxlength="80">
         <ul id="comune-sug" class="comuni-list"></ul>
-        <p class="hint">Si sceglie dall'elenco, nel formato <em>Nome (Provincia)</em>, per evitare confusioni tra comuni omonimi.</p>
         <p class="err" id="err-comune" hidden></p>
       </div>
 
@@ -88,7 +87,7 @@
       </fieldset>
 
       <fieldset class="field pos-box" id="pos-box">
-        <legend>Dove si trova? (facoltativo)</legend>
+        <legend>Posizione (facoltativa)</legend>
         <p class="hint">Mi aiuta a controllare la proposta. Per le proprietà private la posizione non viene mai pubblicata.</p>
         <p class="hint hint-warn" id="pos-prima">Scegli prima il comune: serve a controllare che la posizione sia nel posto giusto.</p>
         <div class="pos-actions">
@@ -130,7 +129,7 @@
 
       <div class="field">
         <label for="note">Note</label>
-        <textarea id="note" rows="3" maxlength="1000" placeholder="Facoltativo. Descrivi quello che vedi e che sai della meridiana, o anche quali emozioni ti suscita"></textarea>
+        <textarea id="note" rows="3" maxlength="1000" placeholder="Facoltativo. Descrivi quello che vedi e che sai della meridiana, anche quali emozioni ti suscita"></textarea>
       </div>
 
       <div class="field">
@@ -191,12 +190,8 @@
 
       <fieldset class="field checks">
         <legend class="sr-only">Conferme</legend>
-        <label class="choice"><input type="checkbox" id="c-pubblicazione">
-          <span>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e concedo all'Atlante delle Meridiane il permesso gratuito e non esclusivo di pubblicarla sul sito, con il credito che ho scelto<!--WM-TESTO-->, con la scritta «meridianeditalia» in sovrimpressione<!--/WM-TESTO-->. Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo e non per la vendita delle foto. Il copyright resta mio e posso chiedere in qualsiasi momento la rimozione della foto e la cancellazione dei miei dati. Se il progetto verrà ceduto, il nuovo titolare riceverà anche il mio nome e il mio indirizzo e-mail, per poter continuare a contattarmi. *</span></label>
         <label class="choice"><input type="checkbox" id="c-contenuto">
           <span>Nella fotografia non ci sono persone riconoscibili né targhe leggibili. *</span></label>
-        <label class="choice"><input type="checkbox" id="c-privacy">
-          <span>Ho letto l'<a href="privacy.html#modulo" target="_blank" rel="noopener">informativa privacy</a>, acconsento al trattamento dei miei dati (email ed eventuale nome) per valutare e pubblicare la proposta e per essere contattato, e dichiaro di essere maggiorenne. *</span></label>
         <p class="err" id="err-consensi" hidden></p>
       </fieldset>
 
@@ -205,6 +200,36 @@
       <button type="submit" id="invia" class="submit-btn">Invia la proposta</button>
       <p id="stato" class="status" role="status" aria-live="polite" hidden></p>
     </form>
+
+    <div id="riepilogo" class="modale-sfondo" hidden>
+      <div class="modale" role="dialog" aria-modal="true" aria-labelledby="riepilogo-titolo">
+        <h2 id="riepilogo-titolo">Prima di inviare</h2>
+        <p class="hint">Ecco i termini principali. Per inviare la proposta devi accettarli entrambi.</p>
+
+        <h3>Pubblicazione della foto</h3>
+        <ul>
+          <li>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e concedo all'Atlante delle Meridiane il permesso gratuito e non esclusivo di pubblicarla sul sito, con il credito che ho scelto<!--WM-TESTO-->, con la scritta «meridianeditalia» in sovrimpressione<!--/WM-TESTO-->.</li>
+          <li>Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo e non per la vendita delle foto.</li>
+          <li>Il copyright resta mio e posso chiedere in qualsiasi momento la rimozione della foto e la cancellazione dei miei dati.</li>
+          <li>La pubblicazione non è garantita: la proposta viene valutata prima.</li>
+        </ul>
+        <label class="choice"><input type="checkbox" id="p-pubblicazione"><span>Accetto i termini di pubblicazione.</span></label>
+
+        <h3>Privacy</h3>
+        <ul>
+          <li>Uso la tua email (che non viene mai pubblicata) e l'eventuale nome o pseudonimo per valutare la proposta, per pubblicarla e per contattarti.</li>
+          <li>Per evitare doppioni conservo anche un codice di invio e un'impronta della foto; se indichi la posizione, la conservo per controllare la proposta.</li>
+          <li>Se il progetto verrà ceduto, il nuovo titolare riceverà anche il tuo nome e il tuo indirizzo e-mail, per poterti contattare.</li>
+          <li>Le proposte non approvate vengono cancellate entro 90 giorni. Puoi chiedere la cancellazione dei tuoi dati in qualsiasi momento.</li>
+        </ul>
+        <label class="choice"><input type="checkbox" id="p-privacy"><span>Ho letto l'<a href="privacy.html#modulo" target="_blank" rel="noopener">informativa privacy completa</a>, acconsento al trattamento dei miei dati e dichiaro di essere maggiorenne.</span></label>
+
+        <div class="modale-azioni">
+          <button type="button" id="riepilogo-annulla" class="secondary-btn">Annulla</button>
+          <button type="button" id="riepilogo-invia" class="submit-btn" disabled>Accetto e invio</button>
+        </div>
+      </div>
+    </div>
 
     <section id="esito" class="notice ok" hidden>
       <h2>Grazie!</h2>
