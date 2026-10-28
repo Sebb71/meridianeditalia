@@ -1,4 +1,4 @@
-/* Menu a tre lineette dell'Atlante delle Meridiane.
+/* Menu a tre lineette dell'Meridiane d'Italia.
    Per aggiungere una pagina al menu basta una riga nell'elenco VOCI qui sotto (percorso dalla cartella principale del sito).
    Nessun cookie, nessuna richiesta a siti esterni. */
 (function () {

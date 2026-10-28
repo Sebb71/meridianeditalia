@@ -29,3 +29,7 @@
 .menu-lista a[aria-current="page"] { font-weight: 700; border-left-color: var(--accent, #b46b31); }
 body.menu-aperto { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .menu-overlay, .menu-pannello { transition: none; } }
+
+/* Icona personalizzata accanto al nome del sito (vedi "icona_sito" in scripts/config.json) e voce "revoca mappa" nel piè di pagina */
+.brand-icon { flex: none; display: block; object-fit: contain; }
+#map-reset:not([hidden])::before { content: "· "; }
