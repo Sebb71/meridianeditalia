@@ -30,6 +30,5 @@
 body.menu-aperto { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .menu-overlay, .menu-pannello { transition: none; } }
 
-/* Icona personalizzata accanto al nome del sito (vedi "icona_sito" in scripts/config.json) e voce "revoca mappa" nel piè di pagina */
+/* Icona personalizzata accanto al nome del sito (vedi "icona_sito" in scripts/config.json) */
 .brand-icon { flex: none; display: block; object-fit: contain; }
-#map-reset:not([hidden])::before { content: "· "; }
