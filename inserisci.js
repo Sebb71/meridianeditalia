@@ -62,7 +62,6 @@
     $("comune").addEventListener("change", aggiornaStatoPosizione);
     aggiornaStatoPosizione();
     $("modulo").addEventListener("submit", invia);
-    eventiRiepilogo();
   }
 
 
@@ -686,7 +685,7 @@
     if (!cred) segna("credito", "Indica se vuoi che compaia il tuo nome.", "modulo");
     else if (cred === "mostra" && !$("nome").value.trim()) segna("credito", "Scrivi il nome da mostrare.", "nome");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) segna("email", "Scrivi un indirizzo email valido.", "email");
-    if (!$("c-contenuto").checked) segna("consensi", "Per inviare conferma che nella fotografia non ci sono persone riconoscibili né targhe leggibili.", "c-contenuto");
+    if (!($("c-pubblicazione").checked && $("c-contenuto").checked && $("c-privacy").checked)) segna("consensi", "Per inviare devi spuntare tutte le conferme.", "c-pubblicazione");
     if (cfg.sitekey && !tsToken) { stato("Completa la verifica anti-spam qui sopra, poi invia di nuovo.", true); if (!primo) primo = $("ts-box"); }
 
     if (primo) { primo.scrollIntoView({ behavior: "smooth", block: "center" }); if (primo.focus) primo.focus({ preventScroll: true }); return false; }
@@ -698,50 +697,6 @@
     p.textContent = msg; p.hidden = !msg; p.classList.toggle("bad", !!errore_);
   }
 
-  // ---------- finestra di riepilogo: si apre solo se il modulo e' completo ----------
-  let riepilogoAperto = false, ultimoFocus = null;
-  function apriRiepilogo() {
-    ultimoFocus = document.activeElement;
-    $("p-pubblicazione").checked = false; $("p-privacy").checked = false;
-    $("riepilogo-invia").disabled = true;
-    $("riepilogo").hidden = false;
-    document.body.classList.add("modale-aperta");
-    riepilogoAperto = true;
-    $("riepilogo").querySelector(".modale").scrollTop = 0;
-    $("p-pubblicazione").focus({ preventScroll: true });
-  }
-  function chiudiRiepilogo(ripristina) {
-    if (!riepilogoAperto) return;
-    riepilogoAperto = false;
-    $("riepilogo").hidden = true;
-    document.body.classList.remove("modale-aperta");
-    if (ripristina !== false && ultimoFocus && ultimoFocus.focus) ultimoFocus.focus({ preventScroll: true });
-  }
-  function aggiornaRiepilogo() {
-    $("riepilogo-invia").disabled = !($("p-pubblicazione").checked && $("p-privacy").checked);
-  }
-  function eventiRiepilogo() {
-    $("p-pubblicazione").addEventListener("change", aggiornaRiepilogo);
-    $("p-privacy").addEventListener("change", aggiornaRiepilogo);
-    $("riepilogo-annulla").addEventListener("click", () => chiudiRiepilogo());
-    $("riepilogo").addEventListener("click", (ev) => { if (ev.target === $("riepilogo")) chiudiRiepilogo(); });
-    $("riepilogo-invia").addEventListener("click", () => {
-      if ($("riepilogo-invia").disabled) return;
-      chiudiRiepilogo(false);
-      inviaProposta();
-    });
-    document.addEventListener("keydown", (ev) => {
-      if (!riepilogoAperto) return;
-      if (ev.key === "Escape") { ev.preventDefault(); chiudiRiepilogo(); return; }
-      if (ev.key !== "Tab") return;
-      const f = Array.from($("riepilogo").querySelectorAll("a[href], button:not([disabled]), input"));
-      if (!f.length) return;
-      const primo = f[0], ultimoEl = f[f.length - 1];
-      if (ev.shiftKey && document.activeElement === primo) { ev.preventDefault(); ultimoEl.focus(); }
-      else if (!ev.shiftKey && document.activeElement === ultimoEl) { ev.preventDefault(); primo.focus(); }
-    });
-  }
-
   // ---------- invio ----------
   async function invia(ev) {
     ev.preventDefault();
@@ -749,12 +704,6 @@
     stato("");
     await giaPromessa;                                        // l'elenco delle meridiane già presenti deve essere pronto
     if (!valida()) return;
-    apriRiepilogo();                                          // l'invio parte solo dopo l'accettazione dei termini
-  }
-
-  async function inviaProposta() {
-    if (inviando) return;
-    if (cfg.sitekey && !tsToken) { stato("La verifica anti-spam è scaduta: completala di nuovo, poi invia.", true); return; }
     inviando = true; $("invia").disabled = true;
     stato("Invio in corso… non chiudere la pagina.");
 
@@ -769,9 +718,9 @@
       larghezza_ritaglio: foto.larghezza, altezza_ritaglio: foto.altezza,
       impronta: foto.imp || "",
       impronta_intera: foto.impIntera || "",
-      consenso_pubblicazione: $("p-pubblicazione").checked,
+      consenso_pubblicazione: $("c-pubblicazione").checked,
       consenso_contenuto: $("c-contenuto").checked,
-      consenso_privacy: $("p-privacy").checked,
+      consenso_privacy: $("c-privacy").checked,
       posizione: pos ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
       indicazioni: $("indicazioni").value,
       verifica_catalogo: giaAttive ? valoreRadio("gia") : "nessuna",   // risposta a "È una di queste?"
