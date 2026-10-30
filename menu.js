@@ -8,6 +8,7 @@
     ["Home", "index.html"],
     ["Il progetto", "il-progetto.html"],
     ["Inserisci la tua meridiana", "inserisci.html"],
+    ["Modifica la tua meridiana", "modifica.html"],
     ["Istruzioni per fotografare una meridiana", "fotografare.html"],
     ["Link utili", "link-utili.html"]
   ];

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Modifica la tua meridiana – Meridiane d'Italia</title>
+  <meta name="description" content="Hai inviato una meridiana? Qui puoi correggerne i dati, sostituire la foto o chiedere di toglierla dal sito.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://sebb71.github.io/meridianeditalia/modifica.html">
+  <meta name="theme-color" content="#e9dcc7">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:site_name" content="Meridiane d'Italia">
+  <meta property="og:title" content="Modifica la tua meridiana – Meridiane d'Italia">
+  <meta property="og:description" content="Correggi i dati, sostituisci la foto o chiedi di togliere la tua meridiana.">
+  <meta property="og:url" content="https://sebb71.github.io/meridianeditalia/modifica.html">
+  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/proposta_20261025_8a44ea38.jpg">
+  <!--GC--><script data-goatcounter="https://meridianeditalia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><!--/GC-->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="inserisci.css">
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <!--INTESTAZIONE--><header class="topbar">
+    <a class="brand" href="index.html" aria-label="Vai alla home di Meridiane d'Italia">
+      <span class="brand-sun">☀</span>
+      <span class="brand-text">
+        <strong>Meridiane d'Italia</strong>
+        <small>Catalogo culturale</small>
+      </span>
+    </a>
+  </header><!--/INTESTAZIONE-->
+
+  <main class="privacy form-page">
+    <a class="back" href="index.html">← Meridiane d'Italia</a>
+    <p class="eyebrow">CONTRIBUISCI</p>
+    <h1 class="page-title">Modifica la tua meridiana</h1>
+    <p>Hai inviato una meridiana che è già pubblicata? Qui puoi correggere alcuni dati, sostituire la foto con una migliore
+    o chiedere di toglierla dal sito. La richiesta vale solo con <strong>l'indirizzo email usato per l'invio</strong>: ti scrivo
+    a quell'indirizzo per farti confermare, e <strong>senza conferma non cambia nulla</strong>.</p>
+
+    <p id="form-off" class="notice" hidden>Il modulo non è ancora attivo. Per modificare o togliere una meridiana scrivi a
+    <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>.</p>
+
+    <form id="modulo" novalidate hidden>
+      <div class="field">
+        <label for="comune">Comune della meridiana *</label>
+        <input id="comune" type="text" autocomplete="off" placeholder="Scrivi il nome e scegli dall'elenco" maxlength="80">
+        <ul id="comune-sug" class="comuni-list"></ul>
+        <p class="err" id="err-comune" hidden></p>
+      </div>
+
+      <fieldset class="field" id="mer-box" hidden>
+        <legend>Scegli la tua meridiana *</legend>
+        <p class="hint" id="mer-intro"></p>
+        <ul id="mer-lista" class="gia-lista"></ul>
+        <p class="err" id="err-mer" hidden></p>
+      </fieldset>
+
+      <div class="field">
+        <label for="email">Indirizzo email usato per l'invio *</label>
+        <input id="email" type="email" autocomplete="email" maxlength="120">
+        <p class="err" id="err-email" hidden></p>
+      </div>
+
+      <div class="field">
+        <label for="codice">Codice della proposta (facoltativo)</label>
+        <input id="codice" type="text" autocomplete="off" maxlength="12" placeholder="es. 3fa9c21b">
+        <p class="hint">È il codice che hai visto dopo l'invio. Se lo scrivi, la richiesta funziona anche se non ricordi l'email esatta.</p>
+      </div>
+
+      <fieldset class="field">
+        <legend>Che cosa vuoi fare? *</legend>
+        <label class="choice"><input type="radio" name="azione" value="dati"><span>Cambiare alcuni dati (anno, proprietà, motto, località, note)</span></label>
+        <label class="choice"><input type="radio" name="azione" value="foto"><span>Sostituire la foto con una migliore</span></label>
+        <label class="choice"><input type="radio" name="azione" value="rimuovi"><span>Togliere questa meridiana dal sito</span></label>
+        <label class="choice"><input type="radio" name="azione" value="rimuovi_tutte"><span>Togliere tutte le mie meridiane e cancellare i miei dati</span></label>
+        <p class="err" id="err-azione" hidden></p>
+      </fieldset>
+
+      <fieldset class="field" id="sez-dati" hidden>
+        <legend>Che cosa cambia</legend>
+        <p class="hint">Compila solo quello che vuoi cambiare: i campi lasciati vuoti non vengono toccati. L'anno e il passaggio da pubblica a privata si applicano dopo la tua conferma via email; il resto lo controllo prima di applicarlo.</p>
+        <div class="field">
+          <label for="anno">Anno della fotografia</label>
+          <select id="anno"></select>
+        </div>
+        <div class="field">
+          <label for="proprieta">La meridiana si trova su una proprietà…</label>
+          <select id="proprieta">
+            <option value="">Non cambiare</option>
+            <option value="Privata">Privata</option>
+            <option value="Pubblica">Pubblica</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="motto">Motto scritto sulla meridiana</label>
+          <input id="motto" type="text" maxlength="300" autocomplete="off" placeholder="Lascia vuoto per non cambiarlo">
+        </div>
+        <div class="field">
+          <label for="localita">Località o frazione</label>
+          <input id="localita" type="text" maxlength="120" autocomplete="off" placeholder="Lascia vuoto per non cambiarla">
+        </div>
+        <div class="field">
+          <label for="note">Note</label>
+          <textarea id="note" rows="3" maxlength="1000" placeholder="Lascia vuoto per non cambiarle: se scrivi qui, il nuovo testo sostituisce quello attuale"></textarea>
+        </div>
+        <p class="err" id="err-dati" hidden></p>
+      </fieldset>
+
+      <fieldset class="field" id="sez-foto" hidden>
+        <legend>La nuova fotografia</legend>
+        <div class="field">
+          <label for="foto">Fotografia * (formati ammessi jpg, jpeg, png, webp)</label>
+          <input id="foto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+          <p class="hint"><strong>Avvicinati alla meridiana e/o usa lo zoom prima di scattare: ingrandire dopo peggiora la qualità.</strong> <a href="fotografare.html" target="_blank" rel="noopener">Consigli per fotografare una meridiana</a></p>
+          <p class="hint">Dopo averla scelta potrai ritagliarla sulla meridiana. La foto viene ritagliata, ridimensionata e privata dei dati nascosti (come la posizione GPS) direttamente sul tuo dispositivo: al sito arriva <strong>solo la parte che selezioni</strong>.</p>
+
+          <div id="crop-area" hidden>
+            <p class="hint">Trascina gli angoli e i lati del rettangolo per lasciare la meridiana con pochissimo intorno; trascinando dentro il rettangolo lo sposti. Per scorrere la pagina tocca fuori dal rettangolo.</p>
+            <div id="crop-wrap" class="crop-wrap">
+              <div id="crop-stage" class="crop-stage">
+                <canvas id="crop-canvas"></canvas>
+                <div id="crop-warning" class="crop-warning" hidden><p>Ritaglio troppo piccolo: la foto risulterebbe sfocata.<br>Ingrandisci il rettangolo trascinando gli angoli.</p></div>
+                <div id="crop-box" class="crop-box pieno">
+                  <div id="crop-corpo" class="corpo"></div>
+                  <span class="h" data-h="nw"></span><span class="h" data-h="n"></span><span class="h" data-h="ne"></span>
+                  <span class="h" data-h="e"></span><span class="h" data-h="se"></span><span class="h" data-h="s"></span>
+                  <span class="h" data-h="sw"></span><span class="h" data-h="w"></span>
+                </div>
+              </div>
+            </div>
+            <p class="hint" id="crop-info"></p>
+            <p class="hint crop-soft" id="crop-soft" hidden>Il ritaglio è piccolo: va bene, ma la foto sarà poco nitida. Se puoi, ingrandisci il rettangolo, oppure avvicinati o usa lo zoom quando scatti.</p>
+            <div class="pos-actions">
+              <button type="button" id="crop-ok" class="secondary-btn strong">Conferma ritaglio</button>
+              <button type="button" id="crop-reset" class="secondary-btn">Usa la foto intera</button>
+            </div>
+          </div>
+
+          <div id="foto-pronta" hidden>
+            <img id="anteprima" class="anteprima" alt="Anteprima del ritaglio">
+            <p class="hint" id="foto-info"></p>
+            <button type="button" id="crop-modifica" class="link-btn">Modifica il ritaglio</button>
+          </div>
+          <p class="err" id="err-foto" hidden></p>
+        </div>
+        <label class="choice"><input type="checkbox" id="c-pubblicazione">
+          <span>Sono l'autore della nuova fotografia (o ho il permesso di chi l'ha scattata) e concedo gli stessi permessi di pubblicazione che ho dato con l'invio originale. *</span></label>
+        <label class="choice"><input type="checkbox" id="c-contenuto">
+          <span>Nella fotografia non ci sono persone riconoscibili né targhe leggibili. *</span></label>
+        <p class="err" id="err-consensi" hidden></p>
+      </fieldset>
+
+      <div id="avviso-rimozione" class="notice" hidden>
+        <p>Dopo la tua conferma la meridiana non sarà più pubblicata dal prossimo aggiornamento del sito. Il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni; la foto già pubblicata sul sito viene tolta, ma non posso garantire la scomparsa di eventuali copie già fatte altrove.</p>
+      </div>
+
+      <div class="hp" aria-hidden="true"><label>Non compilare questo campo<input id="sito_web" type="text" tabindex="-1" autocomplete="off"></label></div>
+
+      <p class="hint">Se l'indirizzo (o il codice) corrisponde a quello dell'invio, riceverai a quell'indirizzo un'email con un link per confermare la richiesta. Controlla anche la posta indesiderata. Per riservatezza, il sito risponde sempre allo stesso modo, anche se i dati non corrispondono.</p>
+
+      <div id="ts-box" class="field"><p class="hint" id="ts-hint" hidden>La verifica anti-spam (Cloudflare Turnstile) compare quando inizi a compilare il modulo.</p></div>
+
+      <button type="submit" id="invia" class="submit-btn">Invia la richiesta</button>
+      <p id="stato" class="status" role="status" aria-live="polite" hidden></p>
+      <p class="hint">Non hai più accesso all'indirizzo usato per l'invio? Scrivi a <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>: valuterò la richiesta caso per caso e potrei chiederti elementi che dimostrino che sei l'autore (ad esempio la fotografia originale).</p>
+    </form>
+
+    <section id="esito" class="notice ok" hidden>
+      <h2>Richiesta inviata</h2>
+      <p>Se i dati corrispondono a quelli dell'invio, tra pochi minuti riceverai un'email con il link per confermare. Senza conferma non cambia nulla. Controlla anche la posta indesiderata.</p>
+      <p><a href="index.html">Torna alla home</a></p>
+    </section>
+  </main>
+
+  <!--PIEDE--><footer>
+    <p><span id="footer-copy">© 2026 Sebb71</span> · Meridiane d'Italia — le fotografie appartengono ai rispettivi autori, indicati accanto a ciascuna foto. Riproduzione vietata senza il consenso degli autori. Confini dei comuni: ISTAT.</p>
+    <p><span id="form-link-foot" hidden><a href="inserisci.html">Inserisci la tua meridiana</a> · </span><a href="il-progetto.html">Il progetto</a> · <a href="privacy.html">Informativa privacy</a><span id="map-reset-sep" hidden> · </span><button type="button" id="map-reset" class="link-btn" hidden>Disattiva la mappa (revoca il consenso)</button></p>
+  </footer><!--/PIEDE-->
+  <script src="modifica.js"></script>
+  <script src="menu.js" defer></script>
+</body>
+</html>

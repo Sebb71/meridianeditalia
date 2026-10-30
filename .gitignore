@@ -1,6 +1,7 @@
 # File di lavoro: NON vanno su GitHub
 scripts/
 aggiorna_catalogo.bat
+anteprima_catalogo.bat
 catalogo/foto/
 catalogo/confini/
 catalogo/meridiane.ods

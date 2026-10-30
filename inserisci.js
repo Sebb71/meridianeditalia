@@ -12,6 +12,17 @@
   let pos = null, gpsTemp = null, gpsInAttesa = false, map = null, marcatore = null, cerchioGps = null, cerchioArea = null;
   let mapConsent = false, leafletPromise = null, comuneCorrente = null;
 
+  // Elenco guidato degli anni (dal corrente al 1950); l'ultima voce vale "nessun anno"
+  function riempiAnni(sel, voceVuota, primaVoceVuota) {
+    const fine = new Date().getFullYear();
+    sel.innerHTML = "";
+    const aggiungi = (v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
+    if (primaVoceVuota) aggiungi("", voceVuota);
+    for (let a = fine; a >= 1950; a--) aggiungi(String(a), String(a));
+    if (!primaVoceVuota) aggiungi("", voceVuota);
+    sel.value = primaVoceVuota ? "" : String(fine);
+  }
+
   // ---------- avvio ----------
   async function avvia() {
     try {
@@ -46,7 +57,7 @@
       $("gia-avviso").hidden = (valoreRadio("gia") !== "presente");
       $("err-gia").hidden = true;
     }));
-    $("anno").value = String(new Date().getFullYear());      // anno corrente proposto di default (modificabile)
+    riempiAnni($("anno"), "Non lo so / non lo indico");       // elenco guidato: l'anno corrente e' proposto di default
     document.querySelectorAll('input[name="credito"]').forEach(el =>
       el.addEventListener("change", () => { $("nome-box").hidden = (valoreRadio("credito") !== "mostra"); }));
     $("modulo").addEventListener("focusin", caricaTurnstile, { once: true });
@@ -678,7 +689,7 @@
       else if (g === "presente") segna("gia", "Se la meridiana è già nel catalogo non serve inviarla di nuovo (vedi il messaggio qui sopra).", "gia-box");
     }
     const anno = $("anno").value.trim();
-    if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scrivi un anno di quattro cifre, oppure lascia vuoto.", "anno");
+    if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scegli l'anno dall'elenco.", "anno");
     if (!valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
     if (!foto) { if (imgOrig) segna("foto", "Conferma il ritaglio con il pulsante «Conferma ritaglio».", "crop-ok"); else segna("foto", "Scegli la fotografia.", "foto"); }
     const cred = valoreRadio("credito");

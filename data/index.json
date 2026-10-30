@@ -1,41 +1,8 @@
 {
- "totale": 12,
- "aggiornato": "2026-10-29",
+ "totale": 1,
+ "aggiornato": "2026-10-30",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
-  {
-   "key": "Bedizzole (BS)",
-   "slug": "bedizzole-bs",
-   "nome": "Bedizzole",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.50023,
-   "lon": 10.42077
-  },
-  {
-   "key": "Calcinato (BS)",
-   "slug": "calcinato-bs",
-   "nome": "Calcinato",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.45811,
-   "lon": 10.403
-  },
-  {
-   "key": "Carpenedolo (BS)",
-   "slug": "carpenedolo-bs",
-   "nome": "Carpenedolo",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.34919,
-   "lon": 10.43531
-  },
   {
    "key": "Castellucchio (MN)",
    "slug": "castellucchio-mn",
@@ -46,61 +13,6 @@
    "n": 1,
    "lat": 45.14824,
    "lon": 10.63339
-  },
-  {
-   "key": "Desenzano del Garda (BS)",
-   "slug": "desenzano-del-garda-bs",
-   "nome": "Desenzano del Garda",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.45402,
-   "lon": 10.56422
-  },
-  {
-   "key": "Lonato del Garda (BS)",
-   "slug": "lonato-del-garda-bs",
-   "nome": "Lonato del Garda",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 3,
-   "lat": 45.44256,
-   "lon": 10.49991
-  },
-  {
-   "key": "Muscoline (BS)",
-   "slug": "muscoline-bs",
-   "nome": "Muscoline",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.55782,
-   "lon": 10.46737
-  },
-  {
-   "key": "Puegnago del Garda (BS)",
-   "slug": "puegnago-del-garda-bs",
-   "nome": "Puegnago del Garda",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 2,
-   "lat": 45.57112,
-   "lon": 10.51039
-  },
-  {
-   "key": "Serle (BS)",
-   "slug": "serle-bs",
-   "nome": "Serle",
-   "sigla": "BS",
-   "provincia": "Brescia",
-   "regione": "Lombardia",
-   "n": 1,
-   "lat": 45.57864,
-   "lon": 10.35834
   }
  ]
 }
