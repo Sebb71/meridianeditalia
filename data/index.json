@@ -1,5 +1,5 @@
 {
- "totale": 1,
+ "totale": 3,
  "aggiornato": "2026-10-30",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
@@ -13,6 +13,28 @@
    "n": 1,
    "lat": 45.14824,
    "lon": 10.63339
+  },
+  {
+   "key": "Castiglione delle Stiviere (MN)",
+   "slug": "castiglione-delle-stiviere-mn",
+   "nome": "Castiglione delle Stiviere",
+   "sigla": "MN",
+   "provincia": "Mantova",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.37883,
+   "lon": 10.49487
+  },
+  {
+   "key": "Puegnago del Garda (BS)",
+   "slug": "puegnago-del-garda-bs",
+   "nome": "Puegnago del Garda",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.57112,
+   "lon": 10.51039
   }
  ]
 }
