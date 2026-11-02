@@ -1,6 +1,6 @@
-// ===== Atlante delle Meridiane — dati per comune, mappa con raggruppamento =====
+// ===== Meridiane d'Italia — dati per comune, mappa con raggruppamento =====
 const $ = (id) => document.getElementById(id);
-const DEFAULT_TITLE = "Atlante delle Meridiane – Meridiane d'Italia";
+const DEFAULT_TITLE = "Meridiane d'Italia – Catalogo di fotografie, dati e annotazioni";
 const MAX_SUGGESTIONS = 8;
 
 let comuni = [];          // dall'indice: { key, slug, nome, sigla, provincia, regione, lat, lon, n }
@@ -242,7 +242,8 @@ async function showComune(arg, token) {
   if (token !== routeToken) return;          // nel frattempo l'utente è andato altrove
 
   $("sundial-list").innerHTML = items.map((item, i) => {
-    const sub = [item.localita, isYear(item["anno fotografia"]) ? "foto " + item["anno fotografia"] : ""]
+    const nFoto = 1 + (Array.isArray(item.foto_extra) ? item.foto_extra.length : 0);
+    const sub = [item.localita, isYear(item["anno fotografia"]) ? "foto " + item["anno fotografia"] : "", nFoto > 1 ? nFoto + " foto" : ""]
       .filter(Boolean).join(" · ");
     return `
     <li>
@@ -273,52 +274,99 @@ async function showDetail(slugArg, id, token) {
   const idx = list.indexOf(item);
   const prev = list[idx - 1], next = list[idx + 1];
   const etichetta = list.length > 1 ? `Meridiana ${idx + 1}` : "Meridiana";
-  const foto = escapeHtml(photoUrl(item.foto, "medie"));
   const link = (it) => `#m=${c.slug}/${encodeURIComponent(it.id)}`;
-
-  const anno = String(item["anno fotografia"] ?? "").trim();
   const gm = String(item["google maps"] ?? "").trim();
-  const notes = [];
-  if (item.note) notes.push(item.note);
-  if (anno && !isYear(anno)) notes.push(anno);
-  if (gm && !isUrl(gm) && !isCoord(gm)) notes.push(gm);
 
-  const meta = [];
-  if (isYear(anno)) meta.push(`<div><strong>Anno fotografia:</strong> ${escapeHtml(anno)}</div>`);
-  if (item.proprieta === "Privata") {
-    meta.push(`<div><strong>Proprietà:</strong> Privata — la posizione esatta non è pubblicata</div>`);
-  } else if (item.proprieta === "Pubblica") {
-    meta.push(`<div><strong>Proprietà:</strong> Pubblica</div>`);
-  }
-  if (gm && isUrl(gm)) {
-    meta.push(`<div><strong>Posizione:</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
-  } else if (gm && isCoord(gm)) {
-    meta.push(`<div><strong>Google Maps:</strong> ${escapeHtml(gm)}</div>`);
-  }
-  notes.forEach(n => meta.push(`<div><strong>Note:</strong> ${escapeHtml(n)}</div>`));
+  // Foto della meridiana: la principale (la piu' vecchia pubblicata) e le eventuali foto in piu'
+  const foto0 = { foto: item.foto, anno: String(item["anno fotografia"] ?? "").trim(), note: item.note || "", copyright: item.copyright || "", principale: true };
+  const extra = (Array.isArray(item.foto_extra) ? item.foto_extra : []).map(e => ({
+    foto: e.foto, anno: String(e["anno fotografia"] ?? "").trim(), note: e.note || "", copyright: e.copyright || "", principale: false }));
+  const annoNum = (p) => isYear(p.anno) ? Number(p.anno) : Infinity;
+  const foto = [foto0, ...extra].map((p, i) => ({ p, i })).sort((a, b) => (annoNum(a.p) - annoNum(b.p)) || (a.i - b.i)).map(x => x.p);   // dalla piu' vecchia all'ultima
+  let sel = Math.max(0, foto.findIndex(p => p.principale));
+
+  // Dati che cambiano da foto a foto (anno, note); proprieta' e posizione sono della meridiana
+  const buildMeta = (p) => {
+    const notes = [];
+    if (p.note) notes.push(p.note);
+    if (p.anno && !isYear(p.anno)) notes.push(p.anno);
+    if (gm && !isUrl(gm) && !isCoord(gm)) notes.push(gm);
+    const meta = [];
+    if (isYear(p.anno)) meta.push(`<div><strong>Anno fotografia:</strong> ${escapeHtml(p.anno)}</div>`);
+    if (item.proprieta === "Privata") {
+      meta.push(`<div><strong>Proprietà:</strong> Privata — la posizione esatta non è pubblicata</div>`);
+    } else if (item.proprieta === "Pubblica") {
+      meta.push(`<div><strong>Proprietà:</strong> Pubblica</div>`);
+    }
+    if (gm && isUrl(gm)) {
+      meta.push(`<div><strong>Posizione:</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
+    } else if (gm && isCoord(gm)) {
+      meta.push(`<div><strong>Google Maps:</strong> ${escapeHtml(gm)}</div>`);
+    }
+    notes.forEach(n => meta.push(`<div><strong>Note:</strong> ${escapeHtml(n)}</div>`));
+    return meta.join("");
+  };
+
+  const fotoGrande = escapeHtml(photoUrl(foto[sel].foto, "medie"));
+  const galleria = foto.length > 1 ? `
+    <div class="galleria" role="group" aria-label="Foto di questa meridiana">
+      <p class="galleria-titolo">${foto.length} foto di questa meridiana</p>
+      <ul class="galleria-lista">
+        ${foto.map((p, i) => `
+        <li><button type="button" class="galleria-btn" data-i="${i}" aria-pressed="${i === sel}"
+              aria-label="${isYear(p.anno) ? "Foto del " + escapeHtml(p.anno) : "Foto senza anno"}">
+          <img src="${escapeHtml(photoUrl(p.foto, "thumbs"))}" ${thumbFallback(p.foto)} alt="" loading="lazy" width="72" height="72">
+          <span>${isYear(p.anno) ? escapeHtml(p.anno) : "senza anno"}</span>
+        </button></li>`).join("")}
+      </ul>
+    </div>` : "";
 
   $("view-detail").innerHTML = `
     <a class="back" href="#c=${c.slug}">← ${escapeHtml(c.nome)}</a>
-    ${foto ? `
-      <a class="photo-wrap" href="${foto}" target="_blank" rel="noopener">
-        <img src="${foto}" alt="Meridiana di ${escapeHtml(c.nome)}">
+    ${fotoGrande ? `
+      <a class="photo-wrap" id="foto-link" href="${fotoGrande}" target="_blank" rel="noopener">
+        <img id="foto-img" src="${fotoGrande}" alt="Meridiana di ${escapeHtml(c.nome)}">
       </a>
-      <p class="photo-credit">${escapeHtml(item.copyright || "")}</p>
-      <p class="photo-hint">Tocca la foto per aprirla a schermo intero</p>` : ""}
+      <p class="photo-credit" id="foto-credito">${escapeHtml(foto[sel].copyright)}</p>
+      <p class="photo-hint">Tocca la foto per aprirla a schermo intero</p>
+      ${galleria}` : ""}
     <div class="detail-body">
       <p class="eyebrow">${escapeHtml(etichetta.toUpperCase())}</p>
       <h2>${escapeHtml(c.nome)}</h2>
       ${placeLine(c) ? `<p class="muted">${escapeHtml(placeLine(c))}</p>` : ""}
       ${item.localita ? `<div class="detail-locality"><strong>Località:</strong> ${escapeHtml(item.localita)}</div>` : ""}
       ${item.motto ? `<div class="motto">“${escapeHtml(item.motto)}”</div>` : ""}
-      ${meta.length ? `<div class="meta">${meta.join("")}</div>` : ""}
+      <div class="meta" id="meta-foto">${buildMeta(foto[sel])}</div>
     </div>
     ${list.length > 1 ? `
       <nav class="pager" aria-label="Altre meridiane del comune">
         <a href="${prev ? link(prev) : "#"}" class="${prev ? "" : "disabled"}">‹ Precedente</a>
         <a href="${next ? link(next) : "#"}" class="${next ? "" : "disabled"}">Successiva ›</a>
       </nav>` : ""}`;
-  document.title = `Meridiana a ${c.nome} – Atlante delle Meridiane`;
+  if (!$("meta-foto").innerHTML) $("meta-foto").hidden = true;
+
+  // Galleria: toccando una miniatura cambiano foto grande, credito, anno e note
+  const bottoni = Array.from(document.querySelectorAll("#view-detail .galleria-btn"));
+  const scegli = (i, focus) => {
+    if (i < 0 || i >= foto.length) return;
+    sel = i;
+    const url = photoUrl(foto[i].foto, "medie");
+    $("foto-img").src = url;
+    $("foto-link").href = url;
+    $("foto-credito").textContent = foto[i].copyright;
+    $("meta-foto").innerHTML = buildMeta(foto[i]);
+    $("meta-foto").hidden = !$("meta-foto").innerHTML;
+    bottoni.forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+    if (focus) bottoni[i].focus();
+  };
+  bottoni.forEach((b, i) => {
+    b.addEventListener("click", () => scegli(i, false));
+    b.addEventListener("keydown", (ev) => {                              // frecce sinistra e destra tra le miniature
+      if (ev.key === "ArrowRight") { ev.preventDefault(); scegli(Math.min(foto.length - 1, i + 1), true); }
+      else if (ev.key === "ArrowLeft") { ev.preventDefault(); scegli(Math.max(0, i - 1), true); }
+    });
+  });
+  document.title = `Meridiana a ${c.nome} – Meridiane d'Italia`;
 }
 
 // ---------- mappa: si carica solo dopo il consenso dell'utente ----------

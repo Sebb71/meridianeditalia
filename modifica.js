@@ -280,16 +280,23 @@
       $("mer-intro").textContent = `Nel catalogo non ci sono ancora meridiane pubblicate in ${label}. Qui si possono modificare solo quelle già pubblicate.`;
       return;
     }
-    $("mer-intro").textContent = items.length === 1 ? `Nel catalogo c'è 1 meridiana in ${label}:` : `Nel catalogo ci sono ${items.length} meridiane in ${label}. Scegli la tua:`;
+    const nFoto = items.reduce((n, it) => n + 1 + (Array.isArray(it.foto_extra) ? it.foto_extra.length : 0), 0);
+    $("mer-intro").textContent = (items.length === 1 ? `Nel catalogo c'è 1 meridiana in ${label}` : `Nel catalogo ci sono ${items.length} meridiane in ${label}`) +
+      (nFoto > items.length ? ` (${nFoto} foto in tutto)` : "") + ". Scegli la tua foto:";
     $("mer-lista").innerHTML = items.map((it, i) => {
-      const stem = String(it.foto || "").split("/").pop().replace(/\.[^.]+$/, "");
-      const sotto = [it.localita, /^\d{4}$/.test(String(it["anno fotografia"]).trim()) ? "foto " + it["anno fotografia"] : ""].filter(Boolean).join(" · ");
-      return `<li class="gia-voce"><label class="choice" style="margin:0;align-items:flex-start">
-        <input type="radio" name="mer" value="${esc(it.id)}">
-        <img src="catalogo/thumbs/${esc(stem)}.jpg" onerror="this.onerror=null;this.src='catalogo/medie/${esc(stem)}.jpg'" alt="" loading="lazy" width="64" height="64" style="flex:none;width:64px;height:64px;object-fit:cover;border-radius:8px">
-        <span class="gia-testo"><strong>${items.length > 1 ? "Meridiana " + (i + 1) : "Meridiana"}</strong>
-          ${it.motto ? `<span>“${esc(it.motto)}”</span>` : ""}${sotto ? `<span>${esc(sotto)}</span>` : ""}
-          <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></label></li>`;
+      const foto = [{ id: it.id_foto != null ? it.id_foto : it.id, foto: it.foto, anno: it["anno fotografia"], c: it.copyright }]
+        .concat((Array.isArray(it.foto_extra) ? it.foto_extra : []).map(e => ({ id: e.id, foto: e.foto, anno: e["anno fotografia"], c: e.copyright })));
+      const titolo = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      const righe = foto.map(f => {
+        const stem = String(f.foto || "").split("/").pop().replace(/\.[^.]+$/, "");
+        const anno = /^\d{4}$/.test(String(f.anno).trim()) ? "Foto del " + f.anno : "Foto senza anno";
+        return `<li class="gia-voce"><label class="choice" style="margin:0;align-items:flex-start">
+          <input type="radio" name="mer" value="${esc(f.id)}">
+          <img src="catalogo/thumbs/${esc(stem)}.jpg" onerror="this.onerror=null;this.src='catalogo/medie/${esc(stem)}.jpg'" alt="" loading="lazy" width="64" height="64" style="flex:none;width:64px;height:64px;object-fit:cover;border-radius:8px">
+          <span class="gia-testo"><strong>${esc(anno)}</strong>${f.c ? `<span>${esc(f.c)}</span>` : ""}
+            <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></label></li>`;
+      }).join("");
+      return `<li class="hint" style="margin:6px 0 0"><strong>${esc(titolo)}</strong></li>${righe}`;
     }).join("");
     merDisponibili = true;
   }
@@ -318,7 +325,7 @@
     const segna = (campo, msg, elId) => { errore(campo, msg); if (!primo) primo = $(elId || campo); };
     if (!trovaEsatto($("comune").value)) segna("comune", "Scegli il comune dall'elenco dei suggerimenti.", "comune");
     else if (!merDisponibili) segna("mer", "In questo comune non ci sono meridiane pubblicate da modificare.", "mer-box");
-    else if (!valoreRadio("mer")) segna("mer", "Scegli la tua meridiana dall'elenco.", "mer-box");
+    else if (!valoreRadio("mer")) segna("mer", "Scegli la tua foto dall'elenco.", "mer-box");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) segna("email", "Scrivi un indirizzo email valido.", "email");
     const a = valoreRadio("azione");
     if (!a) segna("azione", "Scegli che cosa vuoi fare.", "modulo");

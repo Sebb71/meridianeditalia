@@ -55,6 +55,8 @@
     eventiRitaglio();
     document.querySelectorAll('input[name="gia"]').forEach(el => el.addEventListener("change", () => {
       $("gia-avviso").hidden = (valoreRadio("gia") !== "presente");
+      $("gia-scelta").hidden = !(valoreRadio("gia") === "aggiungi");
+      mostraCampiMeridiana(valoreRadio("gia") !== "aggiungi");
       $("err-gia").hidden = true;
     }));
     riempiAnni($("anno"), "Non lo so / non lo indico");       // elenco guidato: l'anno corrente e' proposto di default
@@ -430,6 +432,11 @@
   // ---------- meridiane già pubblicate nel comune scelto ("È una di queste?") ----------
   let indiceSito = null;              // etichetta del comune -> { slug, n }, da data/index.json
   let giaToken = 0, giaAttive = false, giaPromessa = Promise.resolve();
+  const inModoAggiungi = () => giaAttive && valoreRadio("gia") === "aggiungi";
+  // Se si aggiunge una foto a una meridiana gia' presente, localita', motto, proprieta' e posizione sono quelli della meridiana: non si chiedono
+  function mostraCampiMeridiana(mostra) {
+    ["blocco-localita", "blocco-motto", "blocco-proprieta", "pos-box"].forEach(id => { $(id).hidden = !mostra; });
+  }
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 
   async function caricaIndiceSito() {
@@ -444,8 +451,9 @@
   async function aggiornaGiaPresenti(label) {
     const token = ++giaToken;
     giaAttive = false;
-    $("gia-box").hidden = true; $("gia-avviso").hidden = true; $("err-gia").hidden = true;
+    $("gia-box").hidden = true; $("gia-avviso").hidden = true; $("gia-scelta").hidden = true; $("err-gia").hidden = true;
     document.querySelectorAll('input[name="gia"]').forEach(el => { el.checked = false; });
+    mostraCampiMeridiana(true);
     if (!label) return;
     const c = (await caricaIndiceSito())[label];
     if (!c || !c.n) return;                                   // nessuna meridiana pubblicata: niente da controllare
@@ -468,6 +476,18 @@
           ${it.motto ? `<span>“${esc(it.motto)}”</span>` : ""}${sotto ? `<span>${esc(sotto)}</span>` : ""}
           <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></li>`;
     }).join("");
+    // elenco per la scelta della meridiana a cui aggiungere la foto (con il limite di foto per meridiana)
+    const max = Number(cfg && cfg.max_foto) >= 1 ? Number(cfg.max_foto) : 5;
+    let disponibili = 0;
+    $("gia-quale").innerHTML = '<option value="">— scegli la meridiana —</option>' + items.map((it, i) => {
+      const n = 1 + (Array.isArray(it.foto_extra) ? it.foto_extra.length : 0);
+      const pieno = n >= max;
+      if (!pieno) disponibili++;
+      const nome = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      return `<option value="${esc(it.id)}"${pieno ? " disabled" : ""}>${esc(nome)} (${n} foto${pieno ? ", già al massimo" : ""})</option>`;
+    }).join("");
+    $("gia-max").textContent = disponibili ? `Ogni meridiana può avere al massimo ${max} foto.`
+      : `Tutte le meridiane di questo comune hanno già il massimo di ${max} foto: non si possono aggiungerne altre.`;
     giaAttive = true;
     $("gia-box").hidden = false;
   }
@@ -686,11 +706,12 @@
     if (giaAttive) {
       const g = valoreRadio("gia");
       if (!g) segna("gia", "Indica se la tua meridiana è una di quelle già presenti.", "gia-box");
-      else if (g === "presente") segna("gia", "Se la meridiana è già nel catalogo non serve inviarla di nuovo (vedi il messaggio qui sopra).", "gia-box");
+      else if (g === "presente") segna("gia", "Se la meridiana è già nel catalogo e non hai altro da aggiungere, non serve inviare nulla (vedi il messaggio qui sopra).", "gia-box");
+      else if (g === "aggiungi" && !$("gia-quale").value) segna("gia", "Scegli a quale meridiana aggiungere la tua foto.", "gia-quale");
     }
     const anno = $("anno").value.trim();
     if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scegli l'anno dall'elenco.", "anno");
-    if (!valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
+    if (!inModoAggiungi() && !valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
     if (!foto) { if (imgOrig) segna("foto", "Conferma il ritaglio con il pulsante «Conferma ritaglio».", "crop-ok"); else segna("foto", "Scegli la fotografia.", "foto"); }
     const cred = valoreRadio("credito");
     if (!cred) segna("credito", "Indica se vuoi che compaia il tuo nome.", "modulo");
@@ -720,8 +741,9 @@
 
     const payload = {
       comune: trovaEsatto($("comune").value),
-      localita: $("localita").value, motto: $("motto").value, anno: $("anno").value.trim(),
-      proprieta: valoreRadio("proprieta"), note: $("note").value,
+      localita: inModoAggiungi() ? "" : $("localita").value, motto: inModoAggiungi() ? "" : $("motto").value, anno: $("anno").value.trim(),
+      proprieta: inModoAggiungi() ? "" : valoreRadio("proprieta"), note: $("note").value,
+      rif_meridiana: inModoAggiungi() ? $("gia-quale").value : "",
       mostra_nome: valoreRadio("credito") === "mostra", nome: $("nome").value,
       email: $("email").value.trim(),
       foto: foto.base64,
@@ -732,8 +754,8 @@
       consenso_pubblicazione: $("c-pubblicazione").checked,
       consenso_contenuto: $("c-contenuto").checked,
       consenso_privacy: $("c-privacy").checked,
-      posizione: pos ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
-      indicazioni: $("indicazioni").value,
+      posizione: (pos && !inModoAggiungi()) ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
+      indicazioni: inModoAggiungi() ? "" : $("indicazioni").value,
       verifica_catalogo: giaAttive ? valoreRadio("gia") : "nessuna",   // risposta a "È una di queste?"
       sito_web: $("sito_web").value,
       turnstile: tsToken

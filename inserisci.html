@@ -14,19 +14,18 @@
   <meta property="og:title" content="Inserisci la tua meridiana – Meridiane d'Italia">
   <meta property="og:description" content="Hai fotografato una meridiana? Proponila per Meridiane d'Italia.">
   <meta property="og:url" content="https://sebb71.github.io/meridianeditalia/inserisci.html">
-  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/proposta_20261025_8a44ea38.jpg">
-  <!--GC--><script data-goatcounter="https://meridianeditalia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><!--/GC-->
+  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/meridiana_001.jpg">
+  <!--GC--><!--/GC-->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="inserisci.css">
-  <link rel="stylesheet" href="menu.css">
 </head>
 <body>
   <!--INTESTAZIONE--><header class="topbar">
     <a class="brand" href="index.html" aria-label="Vai alla home di Meridiane d'Italia">
-      <img class="brand-icon" src="img/logo.svg" alt="" width="60" height="60">
+      <span class="brand-sun">☀</span>
       <span class="brand-text">
         <strong>Meridiane d'Italia</strong>
-        <small>Catalogo culturale</small>
+        <small>Catalogo di fotografie, dati e annotazioni</small>
       </span>
     </a>
   </header><!--/INTESTAZIONE-->
@@ -54,19 +53,26 @@
         <p class="hint" id="gia-intro"></p>
         <ul id="gia-lista" class="gia-lista"></ul>
         <label class="choice"><input type="radio" name="gia" value="diversa"><span><strong>No</strong>, la mia è una meridiana diversa da queste</span></label>
-        <label class="choice"><input type="radio" name="gia" value="presente"><span><strong>Sì</strong>, la mia è una di queste</span></label>
+        <label class="choice"><input type="radio" name="gia" value="aggiungi"><span><strong>Sì, è una di queste</strong> e voglio aggiungere la mia foto (un altro anno, un altro lato, dopo un restauro…)</span></label>
+        <label class="choice"><input type="radio" name="gia" value="presente"><span><strong>Sì, è una di queste</strong> e non ho altro da aggiungere</span></label>
+        <div id="gia-scelta" class="field" hidden>
+          <label for="gia-quale">A quale meridiana aggiungo la tua foto? *</label>
+          <select id="gia-quale"></select>
+          <p class="hint" id="gia-max"></p>
+          <p class="hint">La tua foto comparirà nella scheda di quella meridiana, insieme alle altre, con l'anno e, se vuoi, il tuo nome. Prima la controllo, come per le meridiane nuove. Qui non serve compilare località, motto, proprietà e posizione: sono già quelli della meridiana.</p>
+        </div>
         <div id="gia-avviso" class="notice" hidden>
           <p><strong>Grazie!</strong> Se è già nel catalogo non serve inviarla di nuovo. Se la tua foto mostra qualcosa di diverso o di migliore (un altro lato, un dettaglio, la meridiana restaurata), scrivimi a <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>.</p>
         </div>
         <p class="err" id="err-gia" hidden></p>
       </fieldset>
 
-      <div class="field">
+      <div class="field" id="blocco-localita">
         <label for="localita">Località o frazione</label>
         <input id="localita" type="text" maxlength="120" autocomplete="off">
       </div>
 
-      <div class="field">
+      <div class="field" id="blocco-motto">
         <label for="motto">Motto scritto sulla meridiana</label>
         <input id="motto" type="text" maxlength="300" autocomplete="off">
       </div>
@@ -77,7 +83,7 @@
         <p class="err" id="err-anno" hidden></p>
       </div>
 
-      <fieldset class="field">
+      <fieldset class="field" id="blocco-proprieta">
         <legend>La meridiana si trova su una proprietà… *</legend>
         <label class="choice"><input type="radio" name="proprieta" value="Privata">
           <span><strong>Privata</strong> (casa, giardino, edificio privato): la posizione esatta non viene pubblicata</span></label>
@@ -191,7 +197,7 @@
       <fieldset class="field checks">
         <legend class="sr-only">Conferme</legend>
         <label class="choice"><input type="checkbox" id="c-pubblicazione">
-          <span>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e concedo a Meridiane d'Italia il permesso gratuito e non esclusivo di pubblicarla sul sito, con il credito che ho scelto<!--WM-TESTO-->, con la scritta «meridianeditalia» in sovrimpressione<!--/WM-TESTO-->. Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo e non per la vendita delle foto. Il copyright resta mio e posso chiedere in qualsiasi momento la rimozione della foto e la cancellazione dei miei dati. Se il progetto verrà ceduto, il nuovo titolare riceverà anche il mio nome e il mio indirizzo e-mail, per poter continuare a contattarmi. *</span></label>
+          <span>Sono l'autore della fotografia (o ho il permesso di chi l'ha scattata) e concedo a Meridiane d'Italia il permesso gratuito e non esclusivo di pubblicarla sul sito, con il credito che ho scelto<!--WM-TESTO--><!--/WM-TESTO-->. Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo e non per la vendita delle foto. Il copyright resta mio e posso chiedere in qualsiasi momento la rimozione della foto e la cancellazione dei miei dati. Se il progetto verrà ceduto, il nuovo titolare riceverà anche il mio nome e il mio indirizzo e-mail, per poter continuare a contattarmi. *</span></label>
         <label class="choice"><input type="checkbox" id="c-contenuto">
           <span>Nella fotografia non ci sono persone riconoscibili né targhe leggibili. *</span></label>
         <label class="choice"><input type="checkbox" id="c-privacy">
@@ -217,6 +223,5 @@
     <p><span id="form-link-foot" hidden><a href="inserisci.html">Inserisci la tua meridiana</a> · </span><a href="il-progetto.html">Il progetto</a> · <a href="privacy.html">Informativa privacy</a><span id="map-reset-sep" hidden> · </span><button type="button" id="map-reset" class="link-btn" hidden>Disattiva la mappa (revoca il consenso)</button></p>
   </footer><!--/PIEDE-->
   <script src="inserisci.js"></script>
-  <script src="menu.js" defer></script>
 </body>
 </html>

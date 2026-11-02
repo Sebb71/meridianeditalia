@@ -15,8 +15,8 @@
   <meta property="og:title" content="Modifica la tua meridiana – Meridiane d'Italia">
   <meta property="og:description" content="Correggi i dati, sostituisci la foto o chiedi di togliere la tua meridiana.">
   <meta property="og:url" content="https://sebb71.github.io/meridianeditalia/modifica.html">
-  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/proposta_20261025_8a44ea38.jpg">
-  <!--GC--><script data-goatcounter="https://meridianeditalia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><!--/GC-->
+  <meta property="og:image" content="https://sebb71.github.io/meridianeditalia/catalogo/medie/meridiana_001.jpg">
+  <!--GC--><!--/GC-->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="inserisci.css">
   <link rel="stylesheet" href="menu.css">
@@ -24,10 +24,10 @@
 <body>
   <!--INTESTAZIONE--><header class="topbar">
     <a class="brand" href="index.html" aria-label="Vai alla home di Meridiane d'Italia">
-      <img class="brand-icon" src="img/logo.svg" alt="" width="60" height="60">
+      <span class="brand-sun">☀</span>
       <span class="brand-text">
         <strong>Meridiane d'Italia</strong>
-        <small>Catalogo culturale</small>
+        <small>Catalogo di fotografie, dati e annotazioni</small>
       </span>
     </a>
   </header><!--/INTESTAZIONE-->
@@ -52,7 +52,7 @@
       </div>
 
       <fieldset class="field" id="mer-box" hidden>
-        <legend>Scegli la tua meridiana *</legend>
+        <legend>Scegli la tua foto *</legend>
         <p class="hint" id="mer-intro"></p>
         <ul id="mer-lista" class="gia-lista"></ul>
         <p class="err" id="err-mer" hidden></p>
@@ -74,14 +74,14 @@
         <legend>Che cosa vuoi fare? *</legend>
         <label class="choice"><input type="radio" name="azione" value="dati"><span>Cambiare alcuni dati (anno, proprietà, motto, località, note)</span></label>
         <label class="choice"><input type="radio" name="azione" value="foto"><span>Sostituire la foto con una migliore</span></label>
-        <label class="choice"><input type="radio" name="azione" value="rimuovi"><span>Togliere questa meridiana dal sito</span></label>
+        <label class="choice"><input type="radio" name="azione" value="rimuovi"><span>Togliere questa foto dal sito (se è l'unica della meridiana, la meridiana non sarà più pubblicata)</span></label>
         <label class="choice"><input type="radio" name="azione" value="rimuovi_tutte"><span>Togliere tutte le mie meridiane e cancellare i miei dati</span></label>
         <p class="err" id="err-azione" hidden></p>
       </fieldset>
 
       <fieldset class="field" id="sez-dati" hidden>
         <legend>Che cosa cambia</legend>
-        <p class="hint">Compila solo quello che vuoi cambiare: i campi lasciati vuoti non vengono toccati. L'anno e il passaggio da pubblica a privata si applicano dopo la tua conferma via email; il resto lo controllo prima di applicarlo.</p>
+        <p class="hint">Compila solo quello che vuoi cambiare: i campi lasciati vuoti non vengono toccati. Anno e note sono della tua foto. Motto, località e proprietà sono della meridiana (se ci sono più foto, valgono per tutte). L'anno e il passaggio da pubblica a privata si applicano dopo la tua conferma via email, se la foto è la principale della meridiana; il resto lo controllo prima di applicarlo.</p>
         <div class="field">
           <label for="anno">Anno della fotografia</label>
           <select id="anno"></select>
@@ -154,7 +154,7 @@
       </fieldset>
 
       <div id="avviso-rimozione" class="notice" hidden>
-        <p>Dopo la tua conferma la meridiana non sarà più pubblicata dal prossimo aggiornamento del sito. Il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni; la foto già pubblicata sul sito viene tolta, ma non posso garantire la scomparsa di eventuali copie già fatte altrove.</p>
+        <p>Dopo la tua conferma la foto (o la meridiana, se è l'unica) non sarà più pubblicata dal prossimo aggiornamento del sito. Il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni; la foto già pubblicata sul sito viene tolta, ma non posso garantire la scomparsa di eventuali copie già fatte altrove.</p>
       </div>
 
       <div class="hp" aria-hidden="true"><label>Non compilare questo campo<input id="sito_web" type="text" tabindex="-1" autocomplete="off"></label></div>
@@ -180,6 +180,5 @@
     <p><span id="form-link-foot" hidden><a href="inserisci.html">Inserisci la tua meridiana</a> · </span><a href="il-progetto.html">Il progetto</a> · <a href="privacy.html">Informativa privacy</a><span id="map-reset-sep" hidden> · </span><button type="button" id="map-reset" class="link-btn" hidden>Disattiva la mappa (revoca il consenso)</button></p>
   </footer><!--/PIEDE-->
   <script src="modifica.js"></script>
-  <script src="menu.js" defer></script>
 </body>
 </html>
