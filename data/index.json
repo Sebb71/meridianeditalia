@@ -1,6 +1,6 @@
 {
- "totale": 3,
- "aggiornato": "2026-11-01",
+ "totale": 4,
+ "aggiornato": "2026-11-02",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
   {
@@ -24,6 +24,17 @@
    "n": 1,
    "lat": 45.37883,
    "lon": 10.49487
+  },
+  {
+   "key": "Montichiari (BS)",
+   "slug": "montichiari-bs",
+   "nome": "Montichiari",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.41113,
+   "lon": 10.38208
   },
   {
    "key": "Puegnago del Garda (BS)",
