@@ -87,7 +87,7 @@
       <fieldset class="field" id="blocco-proprieta">
         <legend>La meridiana si trova su una proprietà… *</legend>
         <label class="choice"><input type="radio" name="proprieta" value="Privata">
-          <span><strong>Privata</strong> (casa, giardino, edificio privato): la posizione esatta non viene pubblicata</span></label>
+          <span><strong>Privata</strong> (casa, giardino, edificio privato)</span></label>
         <label class="choice"><input type="radio" name="proprieta" value="Pubblica">
           <span><strong>Pubblica</strong> (chiesa, municipio, scuola, spazio pubblico)</span></label>
         <p class="err" id="err-proprieta" hidden></p>
@@ -95,7 +95,7 @@
 
       <fieldset class="field pos-box" id="pos-box">
         <legend>Posizione (facoltativa)</legend>
-        <p class="hint">Mi aiuta a controllare la proposta. Per le proprietà private la posizione non viene mai pubblicata.</p>
+        <p class="hint">Mi aiuta a controllare la proposta. <strong>La posizione esatta non viene pubblicata</strong>: sul sito compare soltanto una zona approssimativa, un cerchio di circa <!--RAGGIO-->100<!--/RAGGIO--> m di raggio che contiene la meridiana, con il centro spostato. Il punto esatto lo vedo solo io, e lo pubblico solo se verifico che si trova in un luogo pubblico o se il proprietario è d'accordo.</p>
         <p class="hint hint-warn" id="pos-prima">Scegli prima il comune: serve a controllare che la posizione sia nel posto giusto.</p>
         <div class="pos-actions">
           <button type="button" id="btn-gps" class="secondary-btn" disabled>📍 Uso la mia posizione attuale</button>

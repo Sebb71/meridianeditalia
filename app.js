@@ -260,7 +260,40 @@ async function showComune(arg, token) {
   }).join("");
 }
 
+let zonaMap = null, zonaCorrente = null;            // mappa della zona approssimativa nella scheda
+function chiudiZonaMap() { if (zonaMap) { zonaMap.remove(); zonaMap = null; } }
+
+// Zona approssimativa: la posizione esatta non e' pubblicata, si mostra un cerchio che contiene la meridiana (non necessariamente al centro)
+function renderZona(z) {
+  const box = $("zona-box");
+  chiudiZonaMap();
+  if (!mapConsent) {
+    box.innerHTML = `<div class="notice zona-gate">
+      <p>La mappa mostra una zona di circa ${escapeHtml(String(z.raggio))} m di raggio: la posizione esatta della meridiana non è pubblicata.</p>
+      <p class="hint">Per vederla si carica la mappa di OpenStreetMap, un servizio esterno. La tua scelta viene ricordata su questo dispositivo e puoi revocarla dal fondo della pagina.</p>
+      <button type="button" id="zona-attiva" class="secondary-btn strong">Attiva la mappa</button>
+      <p class="err" id="zona-msg" hidden></p></div>`;
+    $("zona-attiva").addEventListener("click", async () => {
+      await enableMap();
+      if (mapConsent) renderZona(z);
+      else { $("zona-msg").textContent = "Non sono riuscito a caricare la mappa. Controlla la connessione e riprova."; $("zona-msg").hidden = false; }
+    });
+    return;
+  }
+  box.innerHTML = `<div id="zona-map" class="zona-map" aria-label="Mappa della zona approssimativa"></div>
+    <p class="hint">Cerchio di circa ${escapeHtml(String(z.raggio))} m di raggio: la meridiana si trova in quest'area, non necessariamente al centro. La posizione esatta non è pubblicata.</p>`;
+  loadMapLibs().then(() => {
+    if (!mapConsent || !$("zona-map")) return;
+    zonaMap = L.map("zona-map", { scrollWheelZoom: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(zonaMap);
+    const cerchio = L.circle([z.lat, z.lon], { radius: z.raggio, color: "#b46b31", weight: 2, fillColor: "#b46b31", fillOpacity: 0.18 }).addTo(zonaMap);
+    zonaMap.fitBounds(cerchio.getBounds().pad(0.25));
+  }).catch(() => { box.innerHTML = `<p class="err">Non sono riuscito a caricare la mappa. Controlla la connessione e riprova.</p>`; });
+}
+
 async function showDetail(slugArg, id, token) {
+  chiudiZonaMap(); zonaCorrente = null;
   const c = bySlug[slugArg] || byKey[slugArg];
   if (!c) { location.hash = ""; return; }
   showView("detail");
@@ -294,12 +327,12 @@ async function showDetail(slugArg, id, token) {
     const meta = [];
     if (isYear(p.anno)) meta.push(`<div><strong>Anno fotografia:</strong> ${escapeHtml(p.anno)}</div>`);
     if (item.proprieta === "Privata") {
-      meta.push(`<div><strong>Proprietà:</strong> Privata — la posizione esatta non è pubblicata</div>`);
+      meta.push(`<div><strong>Proprietà:</strong> Privata</div>`);
     } else if (item.proprieta === "Pubblica") {
       meta.push(`<div><strong>Proprietà:</strong> Pubblica</div>`);
     }
     if (gm && isUrl(gm)) {
-      meta.push(`<div><strong>Posizione:</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
+      meta.push(`<div><strong>Posizione esatta:</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
     } else if (gm && isCoord(gm)) {
       meta.push(`<div><strong>Google Maps:</strong> ${escapeHtml(gm)}</div>`);
     }
@@ -337,6 +370,8 @@ async function showDetail(slugArg, id, token) {
       ${item.localita ? `<div class="detail-locality"><strong>Località:</strong> ${escapeHtml(item.localita)}</div>` : ""}
       ${item.motto ? `<div class="motto">“${escapeHtml(item.motto)}”</div>` : ""}
       <div class="meta" id="meta-foto">${buildMeta(foto[sel])}</div>
+      ${item.zona ? `<div class="zona"><button type="button" class="link-btn" id="zona-btn" aria-expanded="false" aria-controls="zona-box">Vedi posizione approssimativa</button>
+        <div id="zona-box" hidden></div></div>` : ""}
     </div>
     ${list.length > 1 ? `
       <nav class="pager" aria-label="Altre meridiane del comune">
@@ -344,6 +379,17 @@ async function showDetail(slugArg, id, token) {
         <a href="${next ? link(next) : "#"}" class="${next ? "" : "disabled"}">Successiva ›</a>
       </nav>` : ""}`;
   if (!$("meta-foto").innerHTML) $("meta-foto").hidden = true;
+
+  zonaCorrente = item.zona || null;
+  if (item.zona) {                                                       // la mappa si apre solo al clic: la pagina resta leggera
+    $("zona-btn").addEventListener("click", () => {
+      const aperta = !$("zona-box").hidden;
+      $("zona-box").hidden = aperta;
+      $("zona-btn").setAttribute("aria-expanded", String(!aperta));
+      $("zona-btn").textContent = aperta ? "Vedi posizione approssimativa" : "Nascondi posizione approssimativa";
+      if (aperta) chiudiZonaMap(); else renderZona(item.zona);
+    });
+  }
 
   // Galleria: toccando una miniatura cambiano foto grande, credito, anno e note
   const bottoni = Array.from(document.querySelectorAll("#view-detail .galleria-btn"));
@@ -439,6 +485,9 @@ async function enableMap() {
 function disableMap() {
   mapConsent = false;
   storeConsent(false);
+  chiudiZonaMap();                                                       // anche la mappa della zona nella scheda torna al blocco
+  const zb = document.getElementById("zona-box");
+  if (zonaCorrente && zb && !zb.hidden) renderZona(zonaCorrente);
   if (map) { map.remove(); map = null; }
   markers = {};
   showMapUI();

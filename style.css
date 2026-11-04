@@ -307,3 +307,9 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .galleria-btn span { font: 700 13px Arial, sans-serif; }
 .galleria-btn[aria-pressed="true"] { border-color: var(--accent); }
 .galleria-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Zona approssimativa nella scheda: la mappa si apre solo al clic */
+.zona { margin: 16px 0 0; font: 15px Arial, sans-serif; }
+.zona-map { height: 300px; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.zona-gate { margin-top: 10px; }
+.zona-gate p { margin: 0 0 8px; }
