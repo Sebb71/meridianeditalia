@@ -287,9 +287,17 @@ function renderZona(z) {
     zonaMap = L.map("zona-map", { scrollWheelZoom: false });
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(zonaMap);
-    const cerchio = L.circle([z.lat, z.lon], { radius: z.raggio, color: "#b46b31", weight: 2, fillColor: "#b46b31", fillOpacity: 0.18 }).addTo(zonaMap);
-    zonaMap.fitBounds(cerchio.getBounds().pad(0.25));
-  }).catch(() => { box.innerHTML = `<p class="err">Non sono riuscito a caricare la mappa. Controlla la connessione e riprova.</p>`; });
+    // prima si imposta la vista sul quadrato che contiene il cerchio (con un po' di margine), poi si disegna il cerchio:
+    // chiedere i confini al cerchio prima che sia sulla mappa provoca un errore nella libreria
+    const centro = L.latLng(z.lat, z.lon);
+    zonaMap.fitBounds(centro.toBounds(z.raggio * 2.6));
+    L.circle(centro, { radius: z.raggio, color: "#b46b31", weight: 2, fillColor: "#b46b31", fillOpacity: 0.18 }).addTo(zonaMap);
+    setTimeout(() => zonaMap && zonaMap.invalidateSize(), 250);          // se il foglio di stile della mappa arriva dopo, ricalcola le dimensioni
+  }).catch((err) => {
+    console.error("Mappa della zona:", err);
+    chiudiZonaMap();
+    box.innerHTML = `<p class="err">Non sono riuscito a mostrare la mappa${err && err.message ? " (" + escapeHtml(String(err.message)) + ")" : ""}. Riprova, o ricarica la pagina.</p>`;
+  });
 }
 
 async function showDetail(slugArg, id, token) {
