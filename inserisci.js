@@ -772,7 +772,10 @@
         $("esito").hidden = false;
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        stato((j && j.errore) || "L'invio non è riuscito. Riprova.", true);
+        // un testo non ammesso (link, contatti, parole vietate): il messaggio compare sotto il campo, che riceve il cursore
+        const campoTesto = ["motto", "note", "localita", "nome", "indicazioni"].find(x => j && Array.isArray(j.campi) && j.campi.includes(x) && $("err-" + x));
+        if (campoTesto) { pulisciErrori(); errore(campoTesto, j.errore); stato("Controlla il testo segnalato qui sopra e riprova.", true); $(campoTesto).focus(); }
+        else stato((j && j.errore) || "L'invio non è riuscito. Riprova.", true);
         reimpostaTurnstile();
       }
     } catch (_) {

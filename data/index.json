@@ -1,6 +1,6 @@
 {
- "totale": 4,
- "aggiornato": "2026-11-04",
+ "totale": 5,
+ "aggiornato": "2026-11-05",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
   {
@@ -46,6 +46,17 @@
    "n": 1,
    "lat": 45.57112,
    "lon": 10.51039
+  },
+  {
+   "key": "Serle (BS)",
+   "slug": "serle-bs",
+   "nome": "Serle",
+   "sigla": "BS",
+   "provincia": "Brescia",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.57864,
+   "lon": 10.35834
   }
  ]
 }

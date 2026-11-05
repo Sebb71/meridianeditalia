@@ -3,7 +3,7 @@
  "endpoint": "https://script.google.com/macros/s/AKfycbxq8ZdRHxugISCqaTniEWk43H-ZI6f6HiytPQnbltTLUs1x9MR2gfMVkVp-SfGd8SoClg/exec",
  "sitekey": "0x4AAAAAAFb5te_xB0NSBbyn",
  "max_foto": 5,
- "raggio_m": 100,
+ "raggio_m": 200,
  "ritaglio": {
   "lungo": 800,
   "corto": 600,
