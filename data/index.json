@@ -1,5 +1,5 @@
 {
- "totale": 5,
+ "totale": 6,
  "aggiornato": "2026-11-12",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
@@ -32,7 +32,7 @@
    "sigla": "BS",
    "provincia": "Brescia",
    "regione": "Lombardia",
-   "n": 1,
+   "n": 2,
    "lat": 45.41113,
    "lon": 10.38208
   },

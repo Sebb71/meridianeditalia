@@ -16,5 +16,23 @@
    "lon": 10.39522,
    "raggio": 200
   }
+ },
+ {
+  "id": 22,
+  "localita": "centro",
+  "foto": "proposta_20261112_59a9fc43",
+  "motto": "Ab Lumine Motus",
+  "anno fotografia": "2026",
+  "proprieta": "Privata",
+  "google maps": "",
+  "note": "Dalla luce il movimento",
+  "autore": "Sebb71",
+  "copyright": "© 2026 Sebb71",
+  "id_foto": 22,
+  "zona": {
+   "lat": 45.41445,
+   "lon": 10.38861,
+   "raggio": 200
+  }
  }
 ]
