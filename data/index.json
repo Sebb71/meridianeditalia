@@ -1,6 +1,6 @@
 {
- "totale": 6,
- "aggiornato": "2026-11-12",
+ "totale": 7,
+ "aggiornato": "2026-11-13",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
   {
@@ -24,6 +24,17 @@
    "n": 1,
    "lat": 45.37883,
    "lon": 10.49487
+  },
+  {
+   "key": "Cavriana (MN)",
+   "slug": "cavriana-mn",
+   "nome": "Cavriana",
+   "sigla": "MN",
+   "provincia": "Mantova",
+   "regione": "Lombardia",
+   "n": 1,
+   "lat": 45.34653,
+   "lon": 10.60514
   },
   {
    "key": "Montichiari (BS)",
