@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposte da valutare</title>
+<!-- noindex fisso: l'ordine degli attributi impedisce al .bat di cambiarlo quando attivi l'indicizzazione -->
+<meta content="noindex, nofollow" name="robots">
+<meta name="referrer" content="no-referrer">
+<style>
+  :root { --ink:#1d2733; --muted:#5c6b7a; --bg:#edf0f3; --panel:#fff; --line:#d3dae1; --ok:#0f766e; --no:#b42318; --warn:#8a4b08; --warnbg:#fff1d6; --focus:#1d4ed8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { display:flex; align-items:center; gap:16px; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  header h1 { margin:0; font-size:18px; font-weight:650; }
+  #conteggio, #chi { color:var(--muted); }
+  header .spazio { flex:1; }
+  button { font:inherit; cursor:pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:3px solid var(--focus); outline-offset:1px; }
+  .link { background:none; border:0; color:var(--focus); text-decoration:underline; padding:4px; }
+  main { max-width:1180px; margin:0 auto; padding:18px 20px 110px; }
+  #vuoto { padding:60px 0; text-align:center; color:var(--muted); }
+  #vuoto strong { display:block; font-size:20px; color:var(--ink); margin-bottom:6px; }
+  #scheda { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:20px; align-items:start; }
+  @media (max-width:860px) { #scheda { grid-template-columns:1fr; } }
+  .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .foto-box { padding:0; overflow:hidden; position:sticky; top:64px; }
+  @media (max-width:860px) { .foto-box { position:static; } }
+  #foto { display:block; width:100%; max-height:78vh; object-fit:contain; background:#dfe5ea; cursor:zoom-in; }
+  #foto-assente { padding:60px 16px; text-align:center; color:var(--no); background:#fbeae8; }
+  .foto-info { padding:8px 14px; color:var(--muted); font-size:13px; border-top:1px solid var(--line); }
+  .avviso { background:var(--warnbg); border:1px solid #e8c37a; color:var(--warn); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
+  .avviso p { margin:0 0 4px; } .avviso p:last-child { margin:0; }
+  .esistente { display:flex; gap:12px; margin-top:8px; align-items:flex-start; }
+  .esistente img { width:110px; height:110px; object-fit:cover; border-radius:6px; background:#dfe5ea; }
+  h2 { font-size:13px; font-weight:650; color:var(--muted); margin:0 0 8px; }
+  dl { display:grid; grid-template-columns:auto 1fr; gap:4px 14px; margin:0; }
+  dt { color:var(--muted); } dd { margin:0; word-break:break-word; }
+  .campo { margin-bottom:12px; }
+  label { display:block; font-weight:600; margin-bottom:4px; }
+  input[type=text], select, textarea { width:100%; padding:9px 10px; font:inherit; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); }
+  textarea { min-height:90px; resize:vertical; }
+  input:disabled, select:disabled, textarea:disabled { background:#f3f5f7; color:var(--muted); }
+  .errore-campo { border-color:var(--no) !important; }
+  .aiuto { color:var(--muted); font-size:13px; margin-top:3px; }
+  .scelta { display:flex; gap:18px; } .scelta label { font-weight:400; display:flex; gap:6px; align-items:center; margin:0; }
+  .gps a { color:var(--focus); }
+  #barra { position:fixed; left:0; right:0; bottom:0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding:12px 16px; background:var(--panel); border-top:1px solid var(--line); z-index:6; }
+  #barra button { min-height:46px; padding:0 22px; border-radius:8px; border:1px solid var(--line); background:#fff; font-weight:650; }
+  #barra .approva { background:var(--ok); border-color:var(--ok); color:#fff; }
+  #barra .rifiuta { background:var(--no); border-color:var(--no); color:#fff; }
+  #barra button:disabled { opacity:.5; cursor:wait; }
+  #msg { position:fixed; left:16px; bottom:150px; max-width:92vw; background:#1d2733; color:#fff; padding:10px 16px; border-radius:8px; z-index:9; display:flex; gap:14px; align-items:center; }
+  #msg.errore { background:var(--no); }
+  #msg button { background:none; border:0; color:#9fd0ff; text-decoration:underline; }
+  #zoom { position:fixed; inset:0; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; z-index:20; cursor:zoom-out; }
+  #zoom img { max-width:96vw; max-height:96vh; }
+  #accesso { max-width:420px; margin:60px auto; }
+  #accesso input { margin:8px 0 12px; font-size:18px; letter-spacing:.05em; }
+  #accesso button { min-height:46px; padding:0 22px; border-radius:8px; border:0; background:var(--ok); color:#fff; font-weight:650; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Proposte da valutare</h1>
+  <span id="conteggio"></span>
+  <span class="spazio"></span>
+  <span id="chi"></span>
+  <button class="link" id="esci" type="button" hidden>Esci</button>
+  <button class="link" id="aggiorna" type="button" hidden>Aggiorna l'elenco</button>
+</header>
+
+<main>
+  <div id="accesso" class="box" hidden>
+    <h2>Accesso</h2>
+    <label for="codice">Il tuo codice personale</label>
+    <input id="codice" type="text" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX">
+    <button type="button" id="entra">Entra</button>
+    <p id="accesso-err" style="color:var(--no);font-weight:650;margin:10px 0 0" hidden></p>
+  </div>
+
+  <div id="caricamento">Caricamento…</div>
+  <div id="vuoto" hidden><strong>Nessuna proposta da valutare</strong>Quando ne arriva una, comparirà qui dopo «Aggiorna l'elenco».</div>
+
+  <div id="scheda" hidden>
+    <div class="box foto-box">
+      <img id="foto" alt="Fotografia proposta" title="Clic per ingrandire">
+      <div id="foto-assente" hidden>Foto non leggibile da Drive. Controlla il link nel foglio.</div>
+      <div class="foto-info" id="foto-info"></div>
+    </div>
+
+    <div>
+      <div id="avvisi" class="avviso" hidden></div>
+
+      <div class="box" style="margin-bottom:12px">
+        <h2>Autore e invio</h2>
+        <dl>
+          <dt>Nome</dt><dd id="v-nome"></dd>
+          <dt>Email</dt><dd id="v-email"></dd>
+          <dt>Inviata il</dt><dd id="v-data"></dd>
+          <dt>Codice</dt><dd id="v-id"></dd>
+        </dl>
+      </div>
+
+      <div class="box">
+        <h2>Dati della meridiana (modificabili)</h2>
+        <div class="campo"><label for="f-comune">Comune</label><input id="f-comune" type="text" autocomplete="off">
+          <div class="aiuto">Formato: Nome (SIGLA). Se lo cambi, controllo che esista nell'elenco del sito.</div></div>
+        <div class="campo"><label for="f-localita">Località</label><input id="f-localita" type="text" autocomplete="off"></div>
+        <div class="campo"><label for="f-motto">Motto</label><input id="f-motto" type="text" autocomplete="off"></div>
+        <div class="campo"><label for="f-anno">Anno della fotografia</label><select id="f-anno"></select></div>
+        <div class="campo"><label>Proprietà</label>
+          <div class="scelta">
+            <label><input type="radio" name="prop" value="Privata"> Privata</label>
+            <label><input type="radio" name="prop" value="Pubblica"> Pubblica</label>
+          </div></div>
+        <div class="campo"><label for="f-note">Note</label><textarea id="f-note"></textarea></div>
+        <p class="aiuto" id="copiati" hidden>Località, motto e proprietà sono quelli della meridiana già pubblicata e non si cambiano da qui.</p>
+        <p id="err" style="color:var(--no);font-weight:650;margin:0" hidden></p>
+      </div>
+
+      <div class="box gps" style="margin-top:12px">
+        <h2>Posizione indicata dall'autore</h2>
+        <dl>
+          <dt>Coordinate</dt><dd id="v-coord"></dd>
+          <dt>Come</dt><dd id="v-origine"></dd>
+          <dt>A parole</dt><dd id="v-indicazioni"></dd>
+        </dl>
+        <div class="campo" id="blocco-esatta" style="margin:12px 0 0" hidden>
+          <label style="font-weight:400;display:flex;gap:8px;align-items:flex-start">
+            <input type="checkbox" id="f-esatta" style="margin-top:3px">
+            <span>Pubblica anche il punto esatto (link Google Maps nella scheda). Spunta solo se il luogo è pubblico o il proprietario è d'accordo. Altrimenti il sito mostra soltanto la zona approssimativa.</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="barra" hidden>
+  <button type="button" class="approva" id="b-approva">Approva</button>
+  <button type="button" class="rifiuta" id="b-rifiuta">Rifiuta</button>
+  <button type="button" id="b-annulla" title="Come «Rifiuta», ma la stessa foto si può reinviare">Annulla (si può reinviare)</button>
+  <button type="button" id="b-salta">Salta</button>
+</div>
+<div id="msg" hidden><span id="msg-testo"></span><button type="button" id="msg-azione" hidden></button></div>
+<div id="zoom" hidden><img alt=""></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let endpoint = "", codice = "", titolare = false;
+  let coda = [], pos = 0, cache = {}, corrente = null, occupato = false, timerMsg = null;
+
+  // Parla con lo script Google (corpo "text/plain": evita la richiesta preliminare che gli script Google non gestiscono)
+  async function chiama(azione, extra) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 90000);
+    try {
+      const r = await fetch(endpoint, { method: "POST", body: JSON.stringify(Object.assign({ azione, codice }, extra || {})), signal: ctrl.signal });
+      const j = await r.json();
+      if (!j.ok && (j.errore === "CODICE_NON_VALIDO" || j.errore === "TROPPI_TENTATIVI")) {
+        try { if (j.errore === "CODICE_NON_VALIDO") localStorage.removeItem("mod-codice"); } catch (e) { /* nessuna azione */ }
+        mostraAccesso(j.errore === "TROPPI_TENTATIVI" ? "Troppi tentativi errati: riprova tra qualche minuto." : "Codice non valido o revocato.");
+        const err = new Error(j.errore); err.accesso = true; throw err;
+      }
+      return j;
+    } finally { clearTimeout(timer); }
+  }
+
+  // anni: dal corrente al 1950, voce vuota in testa
+  (function () {
+    const s = $("f-anno"), o = (v, t) => { const e = document.createElement("option"); e.value = v; e.textContent = t; s.appendChild(e); };
+    o("", "non indicato");
+    for (let a = new Date().getFullYear(); a >= 1950; a--) o(String(a), String(a));
+  })();
+
+  function messaggio(testo, errore, azione) {
+    clearTimeout(timerMsg);
+    $("msg").className = errore ? "errore" : "";
+    $("msg-testo").textContent = testo;
+    const b = $("msg-azione");
+    b.hidden = !azione;
+    if (azione) { b.textContent = azione.testo; b.onclick = azione.fn; }
+    $("msg").hidden = false;
+    timerMsg = setTimeout(() => { $("msg").hidden = true; }, azione ? 10000 : (errore ? 9000 : 4000));
+  }
+  const bloccaBarra = (on) => { occupato = on; document.querySelectorAll("#barra button").forEach(b => { b.disabled = on; }); };
+
+  async function carica(idPrimo) {
+    $("caricamento").textContent = "Caricamento…"; $("caricamento").hidden = false;
+    try {
+      const r = await chiama("mod_elenco");
+      if (!r.ok) throw new Error(r.errore || "risposta non valida");
+      coda = r.coda || []; cache = {}; pos = 0;
+      if (idPrimo) { const i = coda.findIndex(x => x.id === idPrimo); if (i > 0) coda.unshift(coda.splice(i, 1)[0]); }
+    } catch (e) { if (!e.accesso) $("caricamento").textContent = "Errore: " + (e.message || e); return; }
+    $("caricamento").hidden = true;
+    mostraCorrente();
+  }
+
+  function dettaglio(id) {
+    if (!cache[id]) cache[id] = chiama("mod_carica", { id });
+    return cache[id];
+  }
+
+  async function mostraCorrente() {
+    $("conteggio").textContent = coda.length ? coda.length + (coda.length === 1 ? " proposta" : " proposte") + " in attesa" : "";
+    const vuoto = !coda.length;
+    $("vuoto").hidden = !vuoto; $("scheda").hidden = vuoto; $("barra").hidden = vuoto;
+    if (vuoto) return;
+    pos = pos % coda.length;
+    const id = coda[pos].id;
+    bloccaBarra(true);
+    $("foto-info").textContent = "Carico la foto…";
+    let d;
+    try { d = await dettaglio(id); }
+    catch (e) { delete cache[id]; if (!e.accesso) messaggio("Non riesco a caricare la proposta: " + (e.message || e), true); bloccaBarra(false); return; }
+    if (coda[pos] && coda[pos].id !== id) return;       // nel frattempo si è passati ad altro
+    if (!d.ok) { messaggio(d.errore, true); coda.splice(pos, 1); mostraCorrente(); return; }
+    mostra(d);
+    bloccaBarra(false);
+    const prossimo = coda[(pos + 1) % coda.length];     // precarica la successiva
+    if (prossimo && prossimo.id !== id) dettaglio(prossimo.id).catch(() => { delete cache[prossimo.id]; });
+  }
+
+  function mostra(d) {
+    corrente = d;
+    $("err").hidden = true;
+    document.querySelectorAll(".errore-campo").forEach(e => e.classList.remove("errore-campo"));
+    $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
+    if (d.foto) $("foto").src = d.foto;
+    $("foto-info").textContent = d.dimensioni ? "Dimensioni del ritaglio: " + d.dimensioni + " px" : "";
+    $("v-nome").textContent = d.nome || "—"; $("v-email").textContent = d.email || "—";
+    $("v-data").textContent = d.data || "—"; $("v-id").textContent = d.id;
+    $("f-comune").value = d.comune; $("f-localita").value = d.localita; $("f-motto").value = d.motto;
+    $("f-note").value = d.note;
+    const anno = $("f-anno"); anno.value = d.anno; if (anno.value !== d.anno) anno.value = "";
+    document.querySelectorAll('input[name="prop"]').forEach(r => { r.checked = (r.value === d.proprieta); });
+    ["f-comune", "f-localita", "f-motto"].forEach(i => { $(i).disabled = d.extra; });
+    document.querySelectorAll('input[name="prop"]').forEach(r => { r.disabled = d.extra; });
+    $("copiati").hidden = !d.extra;
+
+    const av = $("avvisi"); av.innerHTML = "";
+    const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); return p; };
+    if (d.duplicato) riga("Possibile duplicato: " + d.duplicato);
+    if (d.verifica === "diversa") riga("L'autore dichiara che la sua meridiana è diversa da quelle già pubblicate nel comune.");
+    if (d.extra) {
+      riga("Foto in più di una meridiana già pubblicata" + (d.esistente ? " (id " + d.esistente.id + ")" : "") + ".");
+      if (d.esistente) {
+        const w = document.createElement("div"); w.className = "esistente";
+        if (d.esistente.foto) { const im = document.createElement("img"); im.src = d.esistente.foto; im.alt = "Meridiana già pubblicata"; w.appendChild(im); }
+        const t = document.createElement("div");
+        t.textContent = [d.esistente.localita, d.esistente.motto ? "«" + d.esistente.motto + "»" : "", d.esistente.anno ? "foto " + d.esistente.anno : ""].filter(Boolean).join(" · ") || "Meridiana già pubblicata";
+        w.appendChild(t); av.appendChild(w);
+      }
+    }
+    av.hidden = !av.childNodes.length;
+
+    const ha = d.lat && d.lon;
+    $("v-coord").textContent = "";
+    if (ha) {
+      const a = document.createElement("a"); a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.href = "https://www.google.com/maps?q=" + encodeURIComponent(d.lat + "," + d.lon);
+      a.textContent = d.lat + ", " + d.lon + " (apri in Google Maps)";
+      $("v-coord").appendChild(a);
+    } else $("v-coord").textContent = "non indicate";
+    $("v-origine").textContent = d.origine || "—";
+    $("v-indicazioni").textContent = d.indicazioni || "—";
+    $("blocco-esatta").hidden = !(ha && !d.extra && titolare);
+    $("f-esatta").checked = false;
+    window.scrollTo(0, 0);
+  }
+
+  function valori() {
+    const p = document.querySelector('input[name="prop"]:checked');
+    return { comune: $("f-comune").value, localita: $("f-localita").value, motto: $("f-motto").value, anno: $("f-anno").value,
+             proprieta: p ? p.value : "", note: $("f-note").value, esatta: $("f-esatta").checked };
+  }
+
+  async function decidi(azione) {
+    if (occupato || !corrente) return;
+    const id = corrente.id;
+    bloccaBarra(true);
+    $("err").hidden = true;
+    try {
+      const r = await chiama("mod_decidi", { id, esito: azione, valori: azione === "approva" ? valori() : {} });
+      if (!r.ok) {
+        $("err").textContent = r.errore; $("err").hidden = false;
+        const campo = { comune: "f-comune", localita: "f-localita", motto: "f-motto", note: "f-note", anno: "f-anno" }[r.campo];
+        if (campo) { $(campo).classList.add("errore-campo"); $(campo).focus(); }
+        messaggio(r.errore, true);
+        if (/non è più «nuova»/.test(r.errore)) { coda.splice(pos, 1); mostraCorrente(); return; }
+        bloccaBarra(false); return;
+      }
+    } catch (e) { if (!e.accesso) messaggio("Operazione non riuscita: " + (e.message || e), true); bloccaBarra(false); return; }
+    const stato = { approva: "approvata", rifiuta: "rifiutata", annulla: "annullata" }[azione];
+    coda.splice(pos, 1); delete cache[id];
+    messaggio("Proposta " + stato + ".", false, {
+      testo: "Ripristina", fn: async () => {
+        try {
+          const r = await chiama("mod_ripristina", { id, stato });
+          if (!r.ok) { messaggio(r.errore, true); return; }
+          messaggio("Proposta riportata tra quelle da valutare.");
+          carica(id);
+        } catch (e) { if (!e.accesso) messaggio("Ripristino non riuscito: " + (e.message || e), true); }
+      } });
+    mostraCorrente();
+  }
+
+  function mostraAccesso(msg) {
+    ["scheda", "vuoto", "barra", "caricamento"].forEach(i => { $(i).hidden = true; });
+    $("aggiorna").hidden = true; $("esci").hidden = true; $("chi").textContent = ""; $("conteggio").textContent = "";
+    $("accesso").hidden = false;
+    $("accesso-err").textContent = msg || ""; $("accesso-err").hidden = !msg;
+    $("codice").focus();
+  }
+
+  async function entra(c) {
+    codice = c;
+    let r;
+    try { r = await chiama("mod_accesso"); }
+    catch (e) { if (!e.accesso) mostraAccesso("Non riesco a contattare il servizio: controlla la connessione e riprova."); return; }
+    titolare = !!r.titolare;
+    $("accesso").hidden = true; $("aggiorna").hidden = false; $("esci").hidden = false;
+    $("chi").textContent = r.nome;
+    try { localStorage.setItem("mod-codice", codice); } catch (e) { /* solo per questa visita */ }
+    carica();
+  }
+
+  $("b-approva").onclick = () => decidi("approva");
+  $("b-rifiuta").onclick = () => { if (confirm("Rifiutare questa proposta? La stessa foto non si potrà reinviare.")) decidi("rifiuta"); };
+  $("b-annulla").onclick = () => decidi("annulla");
+  $("b-salta").onclick = () => { if (!occupato && coda.length > 1) { pos++; mostraCorrente(); } };
+  $("aggiorna").onclick = () => carica(corrente && coda.length ? corrente.id : null);
+  $("foto").onclick = () => { $("zoom").querySelector("img").src = $("foto").src; $("zoom").hidden = false; };
+  $("zoom").onclick = () => { $("zoom").hidden = true; };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("zoom").hidden = true; });
+  $("entra").onclick = () => { const c = $("codice").value.trim(); if (c) entra(c); };
+  $("codice").addEventListener("keydown", (e) => { if (e.key === "Enter") $("entra").click(); });
+  $("esci").onclick = () => {
+    try { localStorage.removeItem("mod-codice"); } catch (e) { /* nessuna azione */ }
+    codice = ""; titolare = false; $("codice").value = ""; mostraAccesso("");
+  };
+
+  (async function avvia() {
+    try {
+      const r = await fetch("data/config-form.json");
+      const cfg = r.ok ? await r.json() : null;
+      if (cfg && cfg.attivo && cfg.endpoint) endpoint = cfg.endpoint;
+    } catch (e) { /* servizio non raggiungibile */ }
+    if (!endpoint) { mostraAccesso("Il servizio non è disponibile in questo momento. Riprova più tardi."); return; }
+    let salvato = "";
+    try { salvato = localStorage.getItem("mod-codice") || ""; } catch (e) { /* nessuna azione */ }
+    if (salvato) entra(salvato); else mostraAccesso("");
+  })();
+</script>
+</body>
+</html>
