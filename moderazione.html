@@ -69,7 +69,14 @@
   #accesso { max-width:420px; margin:60px auto; }
   #accesso input { margin:8px 0 12px; font-size:18px; letter-spacing:.05em; }
   #accesso button { min-height:46px; padding:0 22px; border-radius:8px; border:0; background:var(--ok); color:#fff; font-weight:650; }
-  [hidden] { display:none !important; }
+  #norme { max-width:720px; margin:30px auto; }
+  #norme ol { padding-left:22px; } #norme li { margin-bottom:10px; }
+  #norme input[type=text] { margin:6px 0 12px; }
+  #norme .conferma { display:flex; gap:8px; align-items:flex-start; font-weight:400; margin:14px 0 10px; }
+  #norme .conferma input { margin-top:3px; }
+  #norme button.invia { min-height:46px; padding:0 22px; border-radius:8px; border:0; background:var(--ok); color:#fff; font-weight:650; }
+  #norme button.invia:disabled { opacity:.5; cursor:wait; }
+[hidden] { display:none !important; }
 </style>
 </head>
 <body>
@@ -93,6 +100,18 @@
     <input id="codice" type="text" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX">
     <button type="button" id="entra">Entra</button>
     <p id="accesso-err" style="color:var(--no);font-weight:650;margin:10px 0 0" hidden></p>
+  </div>
+
+  <div id="norme" class="box" hidden>
+    <h2 id="norme-titolo"></h2>
+    <p id="norme-intro"></p>
+    <ol id="norme-punti"></ol>
+    <label class="conferma"><input type="checkbox" id="norme-ok"><span>Ho letto le regole, le accetto e mi impegno a rispettarle.</span></label>
+    <label for="norme-nome">Nome e cognome</label>
+    <input id="norme-nome" type="text" autocomplete="name">
+    <button type="button" class="invia" id="norme-invia">Accetto e continuo</button>
+    <p id="norme-err" style="color:var(--no);font-weight:650;margin:10px 0 0" hidden></p>
+    <p class="aiuto">Il tuo nome, la data e l'ora dell'accettazione vengono registrati. Se non accetti, premi «Esci» in alto.</p>
   </div>
 
   <div id="caricamento">Caricamento…</div>
@@ -204,6 +223,7 @@
     try {
       const r = await fetch(endpoint, { method: "POST", body: JSON.stringify(Object.assign({ azione, codice }, extra || {})), signal: ctrl.signal });
       const j = await r.json();
+      if (!j.ok && j.errore === "NORME_NON_ACCETTATE") { entra(codice); const err = new Error(j.errore); err.accesso = true; throw err; }
       if (!j.ok && (j.errore === "CODICE_NON_VALIDO" || j.errore === "TROPPI_TENTATIVI")) {
         try { if (j.errore === "CODICE_NON_VALIDO") localStorage.removeItem("mod-codice"); } catch (e) { /* nessuna azione */ }
         mostraAccesso(j.errore === "TROPPI_TENTATIVI" ? "Troppi tentativi errati: riprova tra qualche minuto." : "Codice non valido o revocato.");
@@ -300,7 +320,7 @@
     $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
     if (d.foto) $("foto").src = d.foto;
     $("foto-info").textContent = d.dimensioni ? "Dimensioni del ritaglio: " + d.dimensioni + " px" : "";
-    $("v-nome").textContent = d.nome || "—"; $("v-email").textContent = d.email || "—";
+    $("v-nome").textContent = d.nome || "—"; $("v-email").textContent = d.email || (titolare ? "—" : "riservata al proprietario");
     $("v-data").textContent = d.data || "—"; $("v-id").textContent = d.id;
     $("f-comune").value = d.comune; $("f-localita").value = d.localita; $("f-motto").value = d.motto;
     $("f-note").value = d.note;
@@ -361,7 +381,6 @@
     const av = $("mm-avvisi"); av.innerHTML = "";
     const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); };
     if (!d.pubblicata) riga("Questa meridiana non risulta più pubblicata: se approvi, la richiesta verrà segnata come scaduta.");
-    if (d.soloTitolare && !titolare) riga("Il passaggio a «Pubblica» può approvarlo solo il proprietario: puoi rifiutarlo o saltarlo.");
     if (d.nota) riga("Nota: " + d.nota);
     av.hidden = !av.childNodes.length;
 
@@ -413,11 +432,23 @@
   }
 
   function mostraAccesso(msg) {
-    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab"].forEach(i => { $(i).hidden = true; });
+    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "norme"].forEach(i => { $(i).hidden = true; });
     $("aggiorna").hidden = true; $("esci").hidden = true; $("chi").textContent = ""; $("conteggio").textContent = "";
     $("accesso").hidden = false;
     $("accesso-err").textContent = msg || ""; $("accesso-err").hidden = !msg;
     $("codice").focus();
+  }
+
+  let normeVersione = "";
+  function mostraNorme(n) {
+    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "accesso"].forEach(i => { $(i).hidden = true; });
+    $("aggiorna").hidden = true; $("conteggio").textContent = "";
+    normeVersione = n.versione;
+    $("norme-titolo").textContent = n.titolo; $("norme-intro").textContent = n.intro;
+    const ol = $("norme-punti"); ol.innerHTML = "";
+    n.punti.forEach(t => { const li = document.createElement("li"); li.textContent = t; ol.appendChild(li); });
+    $("norme-ok").checked = false; $("norme-err").hidden = true;
+    $("norme").hidden = false; window.scrollTo(0, 0);
   }
 
   async function entra(c) {
@@ -426,11 +457,28 @@
     try { r = await chiama("mod_accesso"); }
     catch (e) { if (!e.accesso) mostraAccesso("Non riesco a contattare il servizio: controlla la connessione e riprova."); return; }
     titolare = !!r.titolare;
-    $("accesso").hidden = true; $("aggiorna").hidden = false; $("esci").hidden = false; $("tab").hidden = false;
+    $("accesso").hidden = true; $("norme").hidden = true; $("esci").hidden = false;
     $("chi").textContent = r.nome;
     try { localStorage.setItem("mod-codice", codice); } catch (e) { /* solo per questa visita */ }
+    if (r.daAccettare) { mostraNorme(r.norme); return; }
+    $("aggiorna").hidden = false; $("tab").hidden = false;
     carica();
   }
+
+  $("norme-invia").onclick = async () => {
+    const nome = $("norme-nome").value.trim();
+    const err = (t) => { $("norme-err").textContent = t; $("norme-err").hidden = false; };
+    $("norme-err").hidden = true;
+    if (!$("norme-ok").checked) return err("Per continuare devi spuntare la conferma.");
+    if (!/^\S+(\s+\S+)+$/.test(nome)) return err("Scrivi il tuo nome e cognome.");
+    $("norme-invia").disabled = true;
+    try {
+      const r = await chiama("mod_accetta", { versione: normeVersione, dichiarato: nome });
+      if (!r.ok) { err(r.errore); return; }
+      entra(codice);
+    } catch (e) { if (!e.accesso) err("Non sono riuscito a registrare l'accettazione: riprova."); }
+    finally { $("norme-invia").disabled = false; }
+  };
 
   $("b-approva").onclick = () => decidi("approva");
   $("b-rifiuta").onclick = () => { if (confirm(modo === "nuove" ? "Rifiutare questa proposta? La stessa foto non si potrà reinviare." : "Rifiutare questa richiesta di modifica?")) decidi("rifiuta"); };
