@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Proposte da valutare</title>
+<title>Da valutare</title>
 <!-- noindex fisso: l'ordine degli attributi impedisce al .bat di cambiarlo quando attivi l'indicizzazione -->
 <meta content="noindex, nofollow" name="robots">
 <meta name="referrer" content="no-referrer">
@@ -18,15 +18,20 @@
   button { font:inherit; cursor:pointer; }
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:3px solid var(--focus); outline-offset:1px; }
   .link { background:none; border:0; color:var(--focus); text-decoration:underline; padding:4px; }
+  #tab { display:flex; gap:6px; max-width:1180px; margin:0 auto; padding:12px 20px 0; }
+  #tab button { padding:8px 16px; border:1px solid var(--line); border-bottom:0; border-radius:8px 8px 0 0; background:#e3e8ed; color:var(--muted); font-weight:600; }
+  #tab button[aria-selected="true"] { background:var(--panel); color:var(--ink); }
   main { max-width:1180px; margin:0 auto; padding:18px 20px 110px; }
   #vuoto { padding:60px 0; text-align:center; color:var(--muted); }
   #vuoto strong { display:block; font-size:20px; color:var(--ink); margin-bottom:6px; }
   #scheda { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:20px; align-items:start; }
   @media (max-width:860px) { #scheda { grid-template-columns:1fr; } }
+  #scheda-mm { max-width:860px; margin:0 auto; }
   .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
   .foto-box { padding:0; overflow:hidden; position:sticky; top:64px; }
   @media (max-width:860px) { .foto-box { position:static; } }
-  #foto { display:block; width:100%; max-height:78vh; object-fit:contain; background:#dfe5ea; cursor:zoom-in; }
+  #foto { display:block; width:100%; max-height:78vh; object-fit:contain; background:#dfe5ea; }
+  .zoomabile { cursor:zoom-in; }
   #foto-assente { padding:60px 16px; text-align:center; color:var(--no); background:#fbeae8; }
   .foto-info { padding:8px 14px; color:var(--muted); font-size:13px; border-top:1px solid var(--line); }
   .avviso { background:var(--warnbg); border:1px solid #e8c37a; color:var(--warn); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
@@ -45,6 +50,12 @@
   .aiuto { color:var(--muted); font-size:13px; margin-top:3px; }
   .scelta { display:flex; gap:18px; } .scelta label { font-weight:400; display:flex; gap:6px; align-items:center; margin:0; }
   .gps a { color:var(--focus); }
+  .valore { padding:9px 10px; background:#f3f5f7; border:1px solid var(--line); border-radius:6px; white-space:pre-wrap; word-break:break-word; min-height:38px; }
+  .confronto { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px) { .confronto { grid-template-columns:1fr; } }
+  .confronto figure { margin:0; } .confronto figcaption { font-weight:600; margin:0 0 6px; }
+  .confronto img { display:block; width:100%; max-height:60vh; object-fit:contain; background:#dfe5ea; border-radius:6px; }
+  .assente { padding:30px 10px; text-align:center; color:var(--no); background:#fbeae8; border-radius:6px; }
   #barra { position:fixed; left:0; right:0; bottom:0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding:12px 16px; background:var(--panel); border-top:1px solid var(--line); z-index:6; }
   #barra button { min-height:46px; padding:0 22px; border-radius:8px; border:1px solid var(--line); background:#fff; font-weight:650; }
   #barra .approva { background:var(--ok); border-color:var(--ok); color:#fff; }
@@ -63,13 +74,17 @@
 </head>
 <body>
 <header>
-  <h1>Proposte da valutare</h1>
+  <h1>Da valutare</h1>
   <span id="conteggio"></span>
   <span class="spazio"></span>
   <span id="chi"></span>
   <button class="link" id="esci" type="button" hidden>Esci</button>
   <button class="link" id="aggiorna" type="button" hidden>Aggiorna l'elenco</button>
 </header>
+<div id="tab" role="tablist" hidden>
+  <button type="button" role="tab" id="tab-nuove">Nuove foto</button>
+  <button type="button" role="tab" id="tab-modifiche">Modifiche</button>
+</div>
 
 <main>
   <div id="accesso" class="box" hidden>
@@ -81,18 +96,17 @@
   </div>
 
   <div id="caricamento">Caricamento…</div>
-  <div id="vuoto" hidden><strong>Nessuna proposta da valutare</strong>Quando ne arriva una, comparirà qui dopo «Aggiorna l'elenco».</div>
+  <div id="vuoto" hidden><strong id="vuoto-titolo"></strong>Quando ne arriva una, comparirà qui dopo «Aggiorna l'elenco».</div>
 
+  <!-- ===== NUOVE FOTO ===== -->
   <div id="scheda" hidden>
     <div class="box foto-box">
-      <img id="foto" alt="Fotografia proposta" title="Clic per ingrandire">
+      <img id="foto" class="zoomabile" alt="Fotografia proposta" title="Clic per ingrandire">
       <div id="foto-assente" hidden>Foto non leggibile da Drive. Controlla il link nel foglio.</div>
       <div class="foto-info" id="foto-info"></div>
     </div>
-
     <div>
       <div id="avvisi" class="avviso" hidden></div>
-
       <div class="box" style="margin-bottom:12px">
         <h2>Autore e invio</h2>
         <dl>
@@ -102,7 +116,6 @@
           <dt>Codice</dt><dd id="v-id"></dd>
         </dl>
       </div>
-
       <div class="box">
         <h2>Dati della meridiana (modificabili)</h2>
         <div class="campo"><label for="f-comune">Comune</label><input id="f-comune" type="text" autocomplete="off">
@@ -119,7 +132,6 @@
         <p class="aiuto" id="copiati" hidden>Località, motto e proprietà sono quelli della meridiana già pubblicata e non si cambiano da qui.</p>
         <p id="err" style="color:var(--no);font-weight:650;margin:0" hidden></p>
       </div>
-
       <div class="box gps" style="margin-top:12px">
         <h2>Posizione indicata dall'autore</h2>
         <dl>
@@ -132,6 +144,37 @@
             <input type="checkbox" id="f-esatta" style="margin-top:3px">
             <span>Pubblica anche il punto esatto (link Google Maps nella scheda). Spunta solo se il luogo è pubblico o il proprietario è d'accordo. Altrimenti il sito mostra soltanto la zona approssimativa.</span></label>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODIFICHE ===== -->
+  <div id="scheda-mm" hidden>
+    <div id="mm-avvisi" class="avviso" hidden></div>
+    <div class="box" style="margin-bottom:12px">
+      <h2>Richiesta di modifica</h2>
+      <dl>
+        <dt>Cosa chiede</dt><dd id="m-cosa"></dd>
+        <dt>Meridiana</dt><dd id="m-mer"></dd>
+        <dt>Autore</dt><dd id="m-autore"></dd>
+        <dt>Richiesta del</dt><dd id="m-data"></dd>
+        <dt>Confermata il</dt><dd id="m-conf"></dd>
+        <dt>Altre voci</dt><dd id="m-altre"></dd>
+      </dl>
+    </div>
+    <div id="mm-testo" class="box" style="margin-bottom:12px" hidden>
+      <h2 id="m-campo"></h2>
+      <div class="campo"><label>Valore attuale</label><div id="m-attuale" class="valore"></div></div>
+      <div class="campo"><label for="m-nuovo">Nuovo valore (puoi correggerlo)</label><textarea id="m-nuovo" rows="3"></textarea></div>
+      <p id="m-err" style="color:var(--no);font-weight:650;margin:0" hidden></p>
+    </div>
+    <div id="mm-foto" class="box" hidden>
+      <h2>Confronto delle fotografie</h2>
+      <div class="confronto">
+        <figure><figcaption>Foto attuale</figcaption>
+          <img id="m-foto-att" class="zoomabile" alt="Foto attuale"><div id="m-foto-att-no" class="assente" hidden>Foto non leggibile</div></figure>
+        <figure><figcaption>Foto nuova</figcaption>
+          <img id="m-foto-nuova" class="zoomabile" alt="Foto nuova"><div id="m-foto-nuova-no" class="assente" hidden>Foto non leggibile</div></figure>
       </div>
     </div>
   </div>
@@ -148,8 +191,11 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
-  let endpoint = "", codice = "", titolare = false;
-  let coda = [], pos = 0, cache = {}, corrente = null, occupato = false, timerMsg = null;
+  let endpoint = "", codice = "", titolare = false, modo = "nuove", occupato = false, timerMsg = null;
+  const S = { nuove: { coda: [], pos: 0, cache: {}, cur: null }, modifiche: { coda: [], pos: 0, cache: {}, cur: null } };
+  const AZ = { nuove: ["mod_elenco", "mod_carica", "mod_decidi", "mod_ripristina"],
+               modifiche: ["mod_mm_elenco", "mod_mm_carica", "mod_mm_decidi", "mod_mm_ripristina"] };
+  const PASSATO = { approva: "approvata", rifiuta: "rifiutata", annulla: "annullata" };
 
   // Parla con lo script Google (corpo "text/plain": evita la richiesta preliminare che gli script Google non gestiscono)
   async function chiama(azione, extra) {
@@ -186,45 +232,69 @@
   }
   const bloccaBarra = (on) => { occupato = on; document.querySelectorAll("#barra button").forEach(b => { b.disabled = on; }); };
 
+  function aggiornaTab() {
+    const n = (m) => S[m].coda.length;
+    $("tab-nuove").textContent = "Nuove foto" + (n("nuove") ? " (" + n("nuove") + ")" : "");
+    $("tab-modifiche").textContent = "Modifiche" + (n("modifiche") ? " (" + n("modifiche") + ")" : "");
+    ["nuove", "modifiche"].forEach(m => $("tab-" + m).setAttribute("aria-selected", String(m === modo)));
+    const k = n(modo);
+    $("conteggio").textContent = k ? k + (modo === "nuove" ? (k === 1 ? " proposta" : " proposte") : (k === 1 ? " richiesta" : " richieste")) + " in attesa" : "";
+  }
+
+  function vista(vuoto) {
+    const nuove = modo === "nuove";
+    $("vuoto").hidden = !vuoto;
+    $("vuoto-titolo").textContent = nuove ? "Nessuna proposta da valutare" : "Nessuna richiesta di modifica da valutare";
+    $("scheda").hidden = vuoto || !nuove;
+    $("scheda-mm").hidden = vuoto || nuove;
+    $("barra").hidden = vuoto;
+    $("b-annulla").hidden = !nuove;
+  }
+
   async function carica(idPrimo) {
     $("caricamento").textContent = "Caricamento…"; $("caricamento").hidden = false;
     try {
-      const r = await chiama("mod_elenco");
-      if (!r.ok) throw new Error(r.errore || "risposta non valida");
-      coda = r.coda || []; cache = {}; pos = 0;
-      if (idPrimo) { const i = coda.findIndex(x => x.id === idPrimo); if (i > 0) coda.unshift(coda.splice(i, 1)[0]); }
+      const risposte = await Promise.all(["nuove", "modifiche"].map(m => chiama(AZ[m][0])));
+      ["nuove", "modifiche"].forEach((m, k) => {
+        const r = risposte[k];
+        if (!r.ok) throw new Error(r.errore || "risposta non valida");
+        const s = S[m]; s.coda = r.coda || []; s.cache = {}; s.pos = 0;
+        if (m === modo && idPrimo) { const i = s.coda.findIndex(x => x.id === idPrimo); if (i > 0) s.coda.unshift(s.coda.splice(i, 1)[0]); }
+      });
     } catch (e) { if (!e.accesso) $("caricamento").textContent = "Errore: " + (e.message || e); return; }
     $("caricamento").hidden = true;
     mostraCorrente();
   }
 
-  function dettaglio(id) {
-    if (!cache[id]) cache[id] = chiama("mod_carica", { id });
-    return cache[id];
+  function dettaglio(m, id) {
+    const s = S[m];
+    if (!s.cache[id]) s.cache[id] = chiama(AZ[m][1], { id });
+    return s.cache[id];
   }
 
   async function mostraCorrente() {
-    $("conteggio").textContent = coda.length ? coda.length + (coda.length === 1 ? " proposta" : " proposte") + " in attesa" : "";
-    const vuoto = !coda.length;
-    $("vuoto").hidden = !vuoto; $("scheda").hidden = vuoto; $("barra").hidden = vuoto;
-    if (vuoto) return;
-    pos = pos % coda.length;
-    const id = coda[pos].id;
+    aggiornaTab();
+    const m = modo, s = S[m];
+    vista(!s.coda.length);
+    if (!s.coda.length) return;
+    s.pos = s.pos % s.coda.length;
+    const id = s.coda[s.pos].id;
     bloccaBarra(true);
-    $("foto-info").textContent = "Carico la foto…";
+    if (m === "nuove") $("foto-info").textContent = "Carico la foto…";
     let d;
-    try { d = await dettaglio(id); }
-    catch (e) { delete cache[id]; if (!e.accesso) messaggio("Non riesco a caricare la proposta: " + (e.message || e), true); bloccaBarra(false); return; }
-    if (coda[pos] && coda[pos].id !== id) return;       // nel frattempo si è passati ad altro
-    if (!d.ok) { messaggio(d.errore, true); coda.splice(pos, 1); mostraCorrente(); return; }
-    mostra(d);
+    try { d = await dettaglio(m, id); }
+    catch (e) { delete s.cache[id]; if (!e.accesso) messaggio("Non riesco a caricare la scheda: " + (e.message || e), true); bloccaBarra(false); return; }
+    if (m !== modo || !s.coda[s.pos] || s.coda[s.pos].id !== id) return;     // nel frattempo si è passati ad altro
+    if (!d.ok) { messaggio(d.errore, true); s.coda.splice(s.pos, 1); mostraCorrente(); return; }
+    if (m === "nuove") mostraNuova(d); else mostraMod(d);
     bloccaBarra(false);
-    const prossimo = coda[(pos + 1) % coda.length];     // precarica la successiva
-    if (prossimo && prossimo.id !== id) dettaglio(prossimo.id).catch(() => { delete cache[prossimo.id]; });
+    const prossimo = s.coda[(s.pos + 1) % s.coda.length];     // precarica la successiva
+    if (prossimo && prossimo.id !== id) dettaglio(m, prossimo.id).catch(() => { delete s.cache[prossimo.id]; });
   }
 
-  function mostra(d) {
-    corrente = d;
+  // ---------- nuove foto ----------
+  function mostraNuova(d) {
+    S.nuove.cur = d;
     $("err").hidden = true;
     document.querySelectorAll(".errore-campo").forEach(e => e.classList.remove("errore-campo"));
     $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
@@ -235,20 +305,19 @@
     $("f-comune").value = d.comune; $("f-localita").value = d.localita; $("f-motto").value = d.motto;
     $("f-note").value = d.note;
     const anno = $("f-anno"); anno.value = d.anno; if (anno.value !== d.anno) anno.value = "";
-    document.querySelectorAll('input[name="prop"]').forEach(r => { r.checked = (r.value === d.proprieta); });
+    document.querySelectorAll('input[name="prop"]').forEach(r => { r.checked = (r.value === d.proprieta); r.disabled = d.extra; });
     ["f-comune", "f-localita", "f-motto"].forEach(i => { $(i).disabled = d.extra; });
-    document.querySelectorAll('input[name="prop"]').forEach(r => { r.disabled = d.extra; });
     $("copiati").hidden = !d.extra;
 
     const av = $("avvisi"); av.innerHTML = "";
-    const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); return p; };
+    const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); };
     if (d.duplicato) riga("Possibile duplicato: " + d.duplicato);
     if (d.verifica === "diversa") riga("L'autore dichiara che la sua meridiana è diversa da quelle già pubblicate nel comune.");
     if (d.extra) {
       riga("Foto in più di una meridiana già pubblicata" + (d.esistente ? " (id " + d.esistente.id + ")" : "") + ".");
       if (d.esistente) {
         const w = document.createElement("div"); w.className = "esistente";
-        if (d.esistente.foto) { const im = document.createElement("img"); im.src = d.esistente.foto; im.alt = "Meridiana già pubblicata"; w.appendChild(im); }
+        if (d.esistente.foto) { const im = document.createElement("img"); im.className = "zoomabile"; im.src = d.esistente.foto; im.alt = "Meridiana già pubblicata"; w.appendChild(im); }
         const t = document.createElement("div");
         t.textContent = [d.esistente.localita, d.esistente.motto ? "«" + d.esistente.motto + "»" : "", d.esistente.anno ? "foto " + d.esistente.anno : ""].filter(Boolean).join(" · ") || "Meridiana già pubblicata";
         w.appendChild(t); av.appendChild(w);
@@ -271,36 +340,72 @@
     window.scrollTo(0, 0);
   }
 
-  function valori() {
+  function valoriNuova() {
     const p = document.querySelector('input[name="prop"]:checked');
     return { comune: $("f-comune").value, localita: $("f-localita").value, motto: $("f-motto").value, anno: $("f-anno").value,
              proprieta: p ? p.value : "", note: $("f-note").value, esatta: $("f-esatta").checked };
   }
 
-  async function decidi(azione) {
-    if (occupato || !corrente) return;
-    const id = corrente.id;
+  // ---------- richieste di modifica ----------
+  function immagine(id, src) { const e = $(id); e.hidden = !src; if (src) e.src = src; $(id + "-no").hidden = !!src; }
+
+  function mostraMod(d) {
+    S.modifiche.cur = d;
+    $("m-err").hidden = true; $("m-nuovo").classList.remove("errore-campo");
+    $("m-cosa").textContent = d.cosa;
+    $("m-mer").textContent = d.comune + (d.localita ? " · " + d.localita : "") + " · meridiana " + d.idMer;
+    $("m-autore").textContent = d.nome ? d.nome + (d.email ? " · " + d.email : "") : "—";
+    $("m-data").textContent = d.data || "—"; $("m-conf").textContent = d.conferma || "—";
+    $("m-altre").textContent = d.altre ? d.altre + (d.altre === 1 ? " altra voce" : " altre voci") + " della stessa richiesta ancora da valutare" : "nessuna";
+
+    const av = $("mm-avvisi"); av.innerHTML = "";
+    const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); };
+    if (!d.pubblicata) riga("Questa meridiana non risulta più pubblicata: se approvi, la richiesta verrà segnata come scaduta.");
+    if (d.soloTitolare && !titolare) riga("Il passaggio a «Pubblica» può approvarlo solo il proprietario: puoi rifiutarlo o saltarlo.");
+    if (d.nota) riga("Nota: " + d.nota);
+    av.hidden = !av.childNodes.length;
+
+    const dati = d.tipo === "dati", foto = d.tipo === "foto";
+    $("mm-testo").hidden = !dati; $("mm-foto").hidden = !foto;
+    if (dati) {
+      $("m-campo").textContent = d.etichetta;
+      $("m-attuale").textContent = d.attuale || "(vuoto)";
+      $("m-nuovo").value = d.nuovo; $("m-nuovo").disabled = (d.campo === "proprieta");
+    }
+    if (foto) { immagine("m-foto-att", d.fotoAttuale); immagine("m-foto-nuova", d.fotoNuova); }
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- decisione (comune alle due schede) ----------
+  async function decidi(esito) {
+    const m = modo, s = S[m];
+    if (occupato || !s.cur) return;
+    const id = s.cur.id, errEl = $(m === "nuove" ? "err" : "m-err");
     bloccaBarra(true);
-    $("err").hidden = true;
+    errEl.hidden = true;
     try {
-      const r = await chiama("mod_decidi", { id, esito: azione, valori: azione === "approva" ? valori() : {} });
+      const extra = m === "nuove" ? { id, esito, valori: esito === "approva" ? valoriNuova() : {} }
+                                  : { id, esito, nuovo: esito === "approva" ? $("m-nuovo").value : "" };
+      const r = await chiama(AZ[m][2], extra);
       if (!r.ok) {
-        $("err").textContent = r.errore; $("err").hidden = false;
-        const campo = { comune: "f-comune", localita: "f-localita", motto: "f-motto", note: "f-note", anno: "f-anno" }[r.campo];
+        errEl.textContent = r.errore; errEl.hidden = false;
+        const campo = { comune: "f-comune", localita: "f-localita", motto: "f-motto", note: "f-note", anno: "f-anno", nuovo: "m-nuovo" }[r.campo];
         if (campo) { $(campo).classList.add("errore-campo"); $(campo).focus(); }
         messaggio(r.errore, true);
-        if (/non è più «nuova»/.test(r.errore)) { coda.splice(pos, 1); mostraCorrente(); return; }
+        if (/non è più «/.test(r.errore)) { s.coda.splice(s.pos, 1); mostraCorrente(); return; }
         bloccaBarra(false); return;
       }
     } catch (e) { if (!e.accesso) messaggio("Operazione non riuscita: " + (e.message || e), true); bloccaBarra(false); return; }
-    const stato = { approva: "approvata", rifiuta: "rifiutata", annulla: "annullata" }[azione];
-    coda.splice(pos, 1); delete cache[id];
-    messaggio("Proposta " + stato + ".", false, {
+    const stato = PASSATO[esito];
+    s.coda.splice(s.pos, 1); delete s.cache[id]; s.cur = null;
+    const testo = m === "modifiche" && esito === "approva" ? "Modifica approvata: sarà applicata entro 10 minuti."
+                : (m === "nuove" ? "Proposta " : "Richiesta ") + stato + ".";
+    messaggio(testo, false, {
       testo: "Ripristina", fn: async () => {
         try {
-          const r = await chiama("mod_ripristina", { id, stato });
+          const r = await chiama(AZ[m][3], { id, stato });
           if (!r.ok) { messaggio(r.errore, true); return; }
-          messaggio("Proposta riportata tra quelle da valutare.");
+          messaggio("Riportata tra quelle da valutare.");
           carica(id);
         } catch (e) { if (!e.accesso) messaggio("Ripristino non riuscito: " + (e.message || e), true); }
       } });
@@ -308,7 +413,7 @@
   }
 
   function mostraAccesso(msg) {
-    ["scheda", "vuoto", "barra", "caricamento"].forEach(i => { $(i).hidden = true; });
+    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab"].forEach(i => { $(i).hidden = true; });
     $("aggiorna").hidden = true; $("esci").hidden = true; $("chi").textContent = ""; $("conteggio").textContent = "";
     $("accesso").hidden = false;
     $("accesso-err").textContent = msg || ""; $("accesso-err").hidden = !msg;
@@ -321,18 +426,22 @@
     try { r = await chiama("mod_accesso"); }
     catch (e) { if (!e.accesso) mostraAccesso("Non riesco a contattare il servizio: controlla la connessione e riprova."); return; }
     titolare = !!r.titolare;
-    $("accesso").hidden = true; $("aggiorna").hidden = false; $("esci").hidden = false;
+    $("accesso").hidden = true; $("aggiorna").hidden = false; $("esci").hidden = false; $("tab").hidden = false;
     $("chi").textContent = r.nome;
     try { localStorage.setItem("mod-codice", codice); } catch (e) { /* solo per questa visita */ }
     carica();
   }
 
   $("b-approva").onclick = () => decidi("approva");
-  $("b-rifiuta").onclick = () => { if (confirm("Rifiutare questa proposta? La stessa foto non si potrà reinviare.")) decidi("rifiuta"); };
+  $("b-rifiuta").onclick = () => { if (confirm(modo === "nuove" ? "Rifiutare questa proposta? La stessa foto non si potrà reinviare." : "Rifiutare questa richiesta di modifica?")) decidi("rifiuta"); };
   $("b-annulla").onclick = () => decidi("annulla");
-  $("b-salta").onclick = () => { if (!occupato && coda.length > 1) { pos++; mostraCorrente(); } };
-  $("aggiorna").onclick = () => carica(corrente && coda.length ? corrente.id : null);
-  $("foto").onclick = () => { $("zoom").querySelector("img").src = $("foto").src; $("zoom").hidden = false; };
+  $("b-salta").onclick = () => { const s = S[modo]; if (!occupato && s.coda.length > 1) { s.pos++; mostraCorrente(); } };
+  $("aggiorna").onclick = () => { const s = S[modo]; carica(s.cur && s.coda.length ? s.cur.id : null); };
+  ["nuove", "modifiche"].forEach(m => { $("tab-" + m).onclick = () => { if (m !== modo) { modo = m; mostraCorrente(); } }; });
+  document.addEventListener("click", (e) => {
+    const im = e.target.closest && e.target.closest("img.zoomabile");
+    if (im && im.src) { $("zoom").querySelector("img").src = im.src; $("zoom").hidden = false; }
+  });
   $("zoom").onclick = () => { $("zoom").hidden = true; };
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("zoom").hidden = true; });
   $("entra").onclick = () => { const c = $("codice").value.trim(); if (c) entra(c); };
