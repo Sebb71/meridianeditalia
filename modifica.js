@@ -316,7 +316,7 @@
     const d = {};
     if ($("anno").value) d.anno = $("anno").value;
     if ($("proprieta").value) d.proprieta = $("proprieta").value;
-    ["motto", "localita", "note"].forEach(k => { const v = $(k).value.trim(); if (v) d[k] = v; });
+    ["motto", "note"].forEach(k => { const v = $(k).value.trim(); if (v) d[k] = v; });
     return d;
   }
   function valida() {

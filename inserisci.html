@@ -60,19 +60,13 @@
           <label for="gia-quale">A quale meridiana aggiungo la tua foto? *</label>
           <select id="gia-quale"></select>
           <p class="hint" id="gia-max"></p>
-          <p class="hint">La tua foto comparirà nella scheda di quella meridiana, insieme alle altre, con l'anno e, se vuoi, il tuo nome. Prima la controllo, come per le meridiane nuove. Qui non serve compilare località, motto, proprietà e posizione: sono già quelli della meridiana.</p>
+          <p class="hint">La tua foto comparirà nella scheda di quella meridiana, insieme alle altre, con l'anno e, se vuoi, il tuo nome. Prima la controllo, come per le meridiane nuove. Qui non serve compilare motto, proprietà e posizione: sono già quelli della meridiana.</p>
         </div>
         <div id="gia-avviso" class="notice" hidden>
           <p><strong>Grazie!</strong> Se è già nel catalogo non serve inviarla di nuovo. Se la tua foto mostra qualcosa di diverso o di migliore (un altro lato, un dettaglio, la meridiana restaurata), scrivimi a <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>.</p>
         </div>
         <p class="err" id="err-gia" hidden></p>
       </fieldset>
-
-      <div class="field" id="blocco-localita">
-        <label for="localita">Località o frazione</label>
-        <input id="localita" type="text" maxlength="120" autocomplete="off">
-        <p class="err" id="err-localita" hidden></p>
-      </div>
 
       <div class="field" id="blocco-motto">
         <label for="motto">Motto scritto sulla meridiana</label>
@@ -97,14 +91,22 @@
       </fieldset>
 
       <fieldset class="field pos-box" id="pos-box">
-        <legend>Posizione (facoltativa)</legend>
-        <p class="hint">Mi aiuta a controllare la proposta. <strong>La posizione esatta non viene pubblicata</strong>: sul sito compare soltanto una zona approssimativa, un cerchio di circa <!--RAGGIO-->200<!--/RAGGIO--> m di raggio che contiene la meridiana, con il centro spostato. Il punto esatto lo vedo solo io, e lo pubblico solo se verifico che si trova in un luogo pubblico o se il proprietario è d'accordo.</p>
+        <legend>Posizione della meridiana *</legend>
+        <p class="hint">Serve a controllare la proposta e a mostrare una zona sulla mappa. <strong>La posizione esatta non viene pubblicata</strong>: sul sito compare soltanto una zona approssimativa, un cerchio di circa <!--RAGGIO-->200<!--/RAGGIO--> m di raggio che contiene la meridiana, con il centro spostato. Il punto esatto lo vedo solo io, e lo pubblico solo se verifico che si trova in un luogo pubblico o se il proprietario è d'accordo.</p>
         <p class="hint hint-warn" id="pos-prima">Scegli prima il comune: serve a controllare che la posizione sia nel posto giusto.</p>
         <div class="pos-actions">
           <button type="button" id="btn-gps" class="secondary-btn" disabled>📍 Uso la mia posizione attuale</button>
           <button type="button" id="btn-mappa" class="secondary-btn" disabled>🗺️ Scelgo sulla mappa</button>
+          <button type="button" id="btn-digita" class="secondary-btn" disabled>⌨️ Scrivo le coordinate</button>
         </div>
-        <p id="gps-msg" class="status" role="status" hidden></p>
+                   <div id="coord-box" class="notice" hidden>
+             <label for="coord-testo" class="sub-label" style="margin-top:0">Coordinate (latitudine, longitudine)</label>
+             <input id="coord-testo" type="text" inputmode="decimal" autocomplete="off" placeholder="es. 45.46427, 9.18951">
+             <p class="hint">In gradi decimali, come le copi da Google Maps (tieni premuto sul punto della mappa e tocca i numeri). Prima la latitudine, poi la longitudine.</p>
+             <button type="button" id="coord-ok" class="secondary-btn strong">Usa queste coordinate</button>
+             <p class="err" id="err-coord" hidden></p>
+           </div>
+           <p id="gps-msg" class="status" role="status" hidden></p>
         <div id="gps-conferma" class="notice" hidden>
           <p id="gps-testo"></p>
           <div class="pos-actions">
@@ -132,9 +134,6 @@
           <button type="button" id="pos-rimuovi" class="link-btn">Rimuovi la posizione</button>
         </div>
 
-        <label for="indicazioni" class="sub-label">Oppure indica il posto a parole</label>
-        <input id="indicazioni" type="text" maxlength="300" autocomplete="off" placeholder="Indirizzo, luogo o link Google Maps">
-        <p class="err" id="err-indicazioni" hidden></p>
         <p class="err" id="err-posizione" hidden></p>
       </fieldset>
 

@@ -72,7 +72,7 @@
 
       <fieldset class="field">
         <legend>Che cosa vuoi fare? *</legend>
-        <label class="choice"><input type="radio" name="azione" value="dati"><span>Cambiare alcuni dati (anno, proprietà, motto, località, note)</span></label>
+        <label class="choice"><input type="radio" name="azione" value="dati"><span>Cambiare alcuni dati (anno, proprietà, motto, note)</span></label>
         <label class="choice"><input type="radio" name="azione" value="foto"><span>Sostituire la foto con una migliore</span></label>
         <label class="choice"><input type="radio" name="azione" value="rimuovi"><span>Togliere questa foto dal sito (se è l'unica della meridiana, la meridiana non sarà più pubblicata)</span></label>
         <label class="choice"><input type="radio" name="azione" value="rimuovi_tutte"><span>Togliere tutte le mie meridiane e cancellare i miei dati</span></label>
@@ -81,7 +81,7 @@
 
       <fieldset class="field" id="sez-dati" hidden>
         <legend>Che cosa cambia</legend>
-        <p class="hint">Compila solo quello che vuoi cambiare: i campi lasciati vuoti non vengono toccati. Anno e note sono della tua foto. Motto, località e proprietà sono della meridiana (se ci sono più foto, valgono per tutte). L'anno e il cambio di proprietà (privata o pubblica) si applicano dopo la tua conferma via email; il resto lo controllo prima di applicarlo.</p>
+        <p class="hint">Compila solo quello che vuoi cambiare: i campi lasciati vuoti non vengono toccati. Anno e note sono della tua foto. Motto e proprietà sono della meridiana (se ci sono più foto, valgono per tutte). L'anno e il cambio di proprietà (privata o pubblica) si applicano dopo la tua conferma via email; il resto lo controllo prima di applicarlo.</p>
         <div class="field">
           <label for="anno">Anno della fotografia</label>
           <select id="anno"></select>
@@ -100,11 +100,7 @@
         <p class="hint">Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce.</p>
         <p class="err" id="err-motto" hidden></p>
         </div>
-        <div class="field">
-          <label for="localita">Località o frazione</label>
-          <input id="localita" type="text" maxlength="120" autocomplete="off" placeholder="Lascia vuoto per non cambiarla">
-        <p class="err" id="err-localita" hidden></p>
-        </div>
+
         <div class="field">
           <label for="note">Note</label>
           <textarea id="note" rows="3" maxlength="1000" placeholder="Lascia vuoto per non cambiarle: se scrivi qui, il nuovo testo sostituisce quello attuale"></textarea>

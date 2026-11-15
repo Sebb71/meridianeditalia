@@ -139,19 +139,18 @@
         <h2>Dati della meridiana (modificabili)</h2>
         <div class="campo"><label for="f-comune">Comune</label><input id="f-comune" type="text" autocomplete="off">
           <div class="aiuto">Formato: Nome (SIGLA). Se lo cambi, controllo che esista nell'elenco del sito.</div></div>
-        <div class="campo"><label for="f-localita">Località</label><input id="f-localita" type="text" autocomplete="off"></div>
         <div class="campo"><label for="f-motto">Motto</label><input id="f-motto" type="text" autocomplete="off"></div>
         <div class="campo"><label for="f-anno">Anno della fotografia</label><select id="f-anno"></select></div>
-        <div class="campo"><label>Proprietà</label>
+        <div class="campo" id="blocco-prop"><label>Proprietà</label>
           <div class="scelta">
             <label><input type="radio" name="prop" value="Privata"> Privata</label>
             <label><input type="radio" name="prop" value="Pubblica"> Pubblica</label>
           </div></div>
         <div class="campo"><label for="f-note">Note</label><textarea id="f-note"></textarea></div>
-        <p class="aiuto" id="copiati" hidden>Località, motto e proprietà sono quelli della meridiana già pubblicata e non si cambiano da qui.</p>
+        <p class="aiuto" id="copiati" hidden>Motto e proprietà sono quelli della meridiana già pubblicata e non si cambiano da qui.</p>
         <p id="err" style="color:var(--no);font-weight:650;margin:0" hidden></p>
       </div>
-      <div class="box gps" style="margin-top:12px">
+      <div class="box gps" id="box-pos" style="margin-top:12px">
         <h2>Posizione indicata dall'autore</h2>
         <dl>
           <dt>Coordinate</dt><dd id="v-coord"></dd>
@@ -322,11 +321,11 @@
     $("foto-info").textContent = d.dimensioni ? "Dimensioni del ritaglio: " + d.dimensioni + " px" : "";
     $("v-nome").textContent = d.nome || "—"; $("v-email").textContent = d.email || (titolare ? "—" : "riservata al proprietario");
     $("v-data").textContent = d.data || "—"; $("v-id").textContent = d.id;
-    $("f-comune").value = d.comune; $("f-localita").value = d.localita; $("f-motto").value = d.motto;
+    $("f-comune").value = d.comune; $("f-motto").value = d.motto;
     $("f-note").value = d.note;
     const anno = $("f-anno"); anno.value = d.anno; if (anno.value !== d.anno) anno.value = "";
     document.querySelectorAll('input[name="prop"]').forEach(r => { r.checked = (r.value === d.proprieta); r.disabled = d.extra; });
-    ["f-comune", "f-localita", "f-motto"].forEach(i => { $(i).disabled = d.extra; });
+    ["f-comune", "f-motto"].forEach(i => { $(i).disabled = d.extra; });
     $("copiati").hidden = !d.extra;
 
     const av = $("avvisi"); av.innerHTML = "";
@@ -356,13 +355,14 @@
     $("v-origine").textContent = d.origine || "—";
     $("v-indicazioni").textContent = d.indicazioni || "—";
     $("blocco-esatta").hidden = !(ha && !d.extra && titolare);
-    $("f-esatta").checked = false;
+       $("f-esatta").checked = false;
+       $("blocco-prop").hidden = !titolare; $("box-pos").hidden = !titolare;
     window.scrollTo(0, 0);
   }
 
   function valoriNuova() {
     const p = document.querySelector('input[name="prop"]:checked');
-    return { comune: $("f-comune").value, localita: $("f-localita").value, motto: $("f-motto").value, anno: $("f-anno").value,
+    return { comune: $("f-comune").value, motto: $("f-motto").value, anno: $("f-anno").value,
              proprieta: p ? p.value : "", note: $("f-note").value, esatta: $("f-esatta").checked };
   }
 

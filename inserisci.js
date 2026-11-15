@@ -68,6 +68,8 @@
     $("gps-si").addEventListener("click", confermaGps);
     $("gps-no").addEventListener("click", annullaGps);
     $("btn-mappa").addEventListener("click", () => apriMappa(pos, 16));
+    $("btn-digita").addEventListener("click", apriDigita);
+    $("coord-ok").addEventListener("click", usaCoordinate);
     $("map-enable-form").addEventListener("click", attivaMappa);
     $("map-reset-form").addEventListener("click", disattivaMappa);
     $("pos-rimuovi").addEventListener("click", rimuoviPos);
@@ -175,7 +177,8 @@
   function aggiornaStatoPosizione() {
     const label = trovaEsatto($("comune").value);
     $("btn-gps").disabled = !label;
-    $("btn-mappa").disabled = !label;
+       $("btn-mappa").disabled = !label;
+       $("btn-digita").disabled = !label;
     $("pos-prima").hidden = !!label;
     if (label !== comuneCorrente) {
       const cambiato = comuneCorrente !== null && label !== null;
@@ -246,6 +249,31 @@
     if (map) { togliCerchioGps(); if (!pos && marcatore) { map.removeLayer(marcatore); marcatore = null; } }
   }
 
+     // ---------- coordinate scritte a mano ----------
+     const BBOX = { latMin: 35.3, latMax: 47.2, lonMin: 6.5, lonMax: 18.7 };       // come nello script Google
+     function apriDigita() { $("coord-box").hidden = false; $("coord-testo").focus(); }
+     function leggiCoordinate(testo) {
+       const n = String(testo || "").match(/[-+]?\d+(?:[.,]\d+)?/g);
+       if (!n || n.length !== 2) return null;
+       const a = parseFloat(n[0].replace(",", ".")), b = parseFloat(n[1].replace(",", "."));
+       return isFinite(a) && isFinite(b) ? [a, b] : null;
+     }
+     async function usaCoordinate() {
+       const err = (t) => { $("err-coord").textContent = t; $("err-coord").hidden = false; };
+       $("err-coord").hidden = true; $("err-posizione").hidden = true;
+       const c = leggiCoordinate($("coord-testo").value);
+       if (!c) { err("Scrivi latitudine e longitudine in gradi decimali, separate da una virgola o da uno spazio (per esempio 45.46427, 9.18951)."); return; }
+       const lat = c[0], lon = c[1];
+       const inItalia = (a, o) => a >= BBOX.latMin && a <= BBOX.latMax && o >= BBOX.lonMin && o <= BBOX.lonMax;
+       if (!inItalia(lat, lon)) {
+         err(inItalia(lon, lat) ? "Sembra che tu abbia scritto prima la longitudine: scrivi prima la latitudine (in Italia il numero più alto, tra 35 e 47)."
+                                : "Queste coordinate non sono in Italia: controlla i numeri.");
+         return;
+       }
+       await confiniPromessa;                               // i confini del comune devono essere pronti
+       if (impostaPos(lat, lon, "digitate")) { $("coord-box").hidden = true; $("coord-testo").value = ""; }
+     }  
+
   // Registra la posizione se è valida; restituisce false se il punto è fuori dal comune
   function impostaPos(lat, lon, origine, precisione) {
     const v = verificaPunto(lat, lon, precisione);
@@ -277,7 +305,8 @@
     $("pos-riepilogo").hidden = !pos;
     if (pos) $("err-posizione").hidden = true;
     if (!pos) return;
-    const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
+           const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "")
+                : (pos.origine === "digitate" ? "scritta da te" : "scelta sulla mappa"); + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
     $("pos-testo").textContent = `Posizione ${da}: ${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}`;
     const v = verificaPunto(pos.lat, pos.lon, pos.precisione), avviso = $("pos-avviso");
     if (v.stato === "bordo") {
@@ -435,7 +464,7 @@
   const inModoAggiungi = () => giaAttive && valoreRadio("gia") === "aggiungi";
   // Se si aggiunge una foto a una meridiana gia' presente, localita', motto, proprieta' e posizione sono quelli della meridiana: non si chiedono
   function mostraCampiMeridiana(mostra) {
-    ["blocco-localita", "blocco-motto", "blocco-proprieta", "pos-box"].forEach(id => { $(id).hidden = !mostra; });
+    ["blocco-motto", "blocco-proprieta", "pos-box"].forEach(id => { $(id).hidden = !mostra; });
   }
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 
@@ -712,6 +741,8 @@
     const anno = $("anno").value.trim();
     if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scegli l'anno dall'elenco.", "anno");
     if (!inModoAggiungi() && !valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
+    if (!inModoAggiungi() && !pos) segna("posizione", gpsInAttesa ? "Conferma con «Sì, la meridiana è qui» la posizione rilevata dal GPS."
+      : "Indica la posizione della meridiana: con il GPS, sulla mappa oppure scrivendo le coordinate.", "pos-box");    
     if (!foto) { if (imgOrig) segna("foto", "Conferma il ritaglio con il pulsante «Conferma ritaglio».", "crop-ok"); else segna("foto", "Scegli la fotografia.", "foto"); }
     const cred = valoreRadio("credito");
     if (!cred) segna("credito", "Indica se vuoi che compaia il tuo nome.", "modulo");
@@ -741,7 +772,7 @@
 
     const payload = {
       comune: trovaEsatto($("comune").value),
-      localita: inModoAggiungi() ? "" : $("localita").value, motto: inModoAggiungi() ? "" : $("motto").value, anno: $("anno").value.trim(),
+      localita: "", motto: inModoAggiungi() ? "" : $("motto").value, anno: $("anno").value.trim(),
       proprieta: inModoAggiungi() ? "" : valoreRadio("proprieta"), note: $("note").value,
       rif_meridiana: inModoAggiungi() ? $("gia-quale").value : "",
       mostra_nome: valoreRadio("credito") === "mostra", nome: $("nome").value,
@@ -755,7 +786,7 @@
       consenso_contenuto: $("c-contenuto").checked,
       consenso_privacy: $("c-privacy").checked,
       posizione: (pos && !inModoAggiungi()) ? { lat: pos.lat, lon: pos.lon, origine: pos.origine, precisione: pos.precisione } : null,
-      indicazioni: inModoAggiungi() ? "" : $("indicazioni").value,
+      indicazioni: "",
       verifica_catalogo: giaAttive ? valoreRadio("gia") : "nessuna",   // risposta a "È una di queste?"
       sito_web: $("sito_web").value,
       turnstile: tsToken
