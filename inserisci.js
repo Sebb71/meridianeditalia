@@ -305,8 +305,8 @@
     $("pos-riepilogo").hidden = !pos;
     if (pos) $("err-posizione").hidden = true;
     if (!pos) return;
-           const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "")
-                : (pos.origine === "digitate" ? "scritta da te" : "scelta sulla mappa"); + (pos.precisione != null ? ` (±${pos.precisione} m)` : "") : "scelta sulla mappa";
+    const da = pos.origine === "gps" ? "rilevata con il GPS" + (pos.precisione != null ? ` (±${pos.precisione} m)` : "")
+             : (pos.origine === "digitate" ? "scritta da te" : "scelta sulla mappa");
     $("pos-testo").textContent = `Posizione ${da}: ${pos.lat.toFixed(5)}, ${pos.lon.toFixed(5)}`;
     const v = verificaPunto(pos.lat, pos.lon, pos.precisione), avviso = $("pos-avviso");
     if (v.stato === "bordo") {
