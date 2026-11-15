@@ -251,7 +251,7 @@
 
      // ---------- coordinate scritte a mano ----------
      const BBOX = { latMin: 35.3, latMax: 47.2, lonMin: 6.5, lonMax: 18.7 };       // come nello script Google
-     function apriDigita() { $("coord-box").hidden = false; $("coord-testo").focus(); }
+     function apriDigita() { messaggioGps(""); $("coord-box").hidden = false; $("coord-testo").focus(); }
      function leggiCoordinate(testo) {
        const n = String(testo || "").match(/[-+]?\d+(?:[.,]\d+)?/g);
        if (!n || n.length !== 2) return null;
@@ -278,7 +278,8 @@
   function impostaPos(lat, lon, origine, precisione) {
     const v = verificaPunto(lat, lon, precisione);
     if (v.stato === "fuori") { erroreFuori(v.m); return false; }
-    pos = { lat: arrotonda(lat), lon: arrotonda(lon), origine };
+        pos = { lat: arrotonda(lat), lon: arrotonda(lon), origine };
+    messaggioGps("");        // toglie l'avviso rosso del GPS rimasto da un tentativo precedente
     if (origine === "gps" && typeof precisione === "number") pos.precisione = Math.round(precisione);
     gpsInAttesa = false;
     $("gps-conferma").hidden = true;
