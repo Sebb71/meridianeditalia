@@ -717,7 +717,7 @@
     s.onload = () => {
       $("ts-hint").hidden = true;
       window.turnstile.render("#ts-box", {
-        sitekey: cfg.sitekey, language: "it",
+        sitekey: cfg.sitekey, language: "it", action: "inserisci",
         callback: (t) => { tsToken = t; },
         "expired-callback": () => { tsToken = ""; },
         "error-callback": () => { tsToken = ""; }

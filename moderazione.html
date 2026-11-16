@@ -76,6 +76,8 @@
   #norme .conferma input { margin-top:3px; }
   #norme button.invia { min-height:46px; padding:0 22px; border-radius:8px; border:0; background:var(--ok); color:#fff; font-weight:650; }
   #norme button.invia:disabled { opacity:.5; cursor:wait; }
+    .sospetta { background:#fbeae8; border:1px solid #e3a59d; color:#7d2514; border-radius:8px; padding:10px 14px; margin-bottom:12px; }
+    .sospetta ul { margin:4px 0 0; padding-left:20px; }
 [hidden] { display:none !important; }
 </style>
 </head>
@@ -125,6 +127,7 @@
       <div class="foto-info" id="foto-info"></div>
     </div>
     <div>
+      <div id="sospetta" class="sospetta" hidden></div>
       <div id="avvisi" class="avviso" hidden></div>
       <div class="box" style="margin-bottom:12px">
         <h2>Autore e invio</h2>
@@ -168,6 +171,7 @@
 
   <!-- ===== MODIFICHE ===== -->
   <div id="scheda-mm" hidden>
+    <div id="mm-sospetta" class="sospetta" hidden></div>
     <div id="mm-avvisi" class="avviso" hidden></div>
     <div class="box" style="margin-bottom:12px">
       <h2>Richiesta di modifica</h2>
@@ -313,7 +317,7 @@
 
   // ---------- nuove foto ----------
   function mostraNuova(d) {
-    S.nuove.cur = d;
+    S.modifiche.cur = d; mostraSospetta("mm-sospetta", d.sospetta); mostraSospetta("mm-sospetta", d.sospetta);
     $("err").hidden = true;
     document.querySelectorAll(".errore-campo").forEach(e => e.classList.remove("errore-campo"));
     $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
@@ -367,6 +371,15 @@
   }
 
   // ---------- richieste di modifica ----------
+  function mostraSospetta(id, testo) {
+    const box = $(id); box.innerHTML = "";
+    if (!testo) { box.hidden = true; return; }
+    const p = document.createElement("p"); p.style.margin = "0";
+    const b = document.createElement("strong"); b.textContent = "Proposta sospetta per:"; p.appendChild(b); box.appendChild(p);
+    const ul = document.createElement("ul");
+    testo.split(" | ").forEach(t => { const li = document.createElement("li"); li.textContent = t.replace(" — ", ": "); ul.appendChild(li); });
+    box.appendChild(ul); box.hidden = false;
+  }
   function immagine(id, src) { const e = $(id); e.hidden = !src; if (src) e.src = src; $(id + "-no").hidden = !!src; }
 
   function mostraMod(d) {
