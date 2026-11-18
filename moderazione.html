@@ -79,6 +79,7 @@
     .sospetta { background:#fbeae8; border:1px solid #e3a59d; color:#7d2514; border-radius:8px; padding:10px 14px; margin-bottom:12px; }
     .sospetta ul { margin:4px 0 0; padding-left:20px; }
   #zoom-msg { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1d2733; color:#fff; padding:8px 14px; border-radius:8px; }
+  header { flex-wrap:wrap; row-gap:4px; }
 [hidden] { display:none !important; }
 </style>
 </head>
@@ -88,6 +89,8 @@
   <span id="conteggio"></span>
   <span class="spazio"></span>
   <span id="chi"></span>
+  <a class="link" id="link-regole" href="regole-collaboratori.html" target="_blank" rel="noopener" hidden>Regole</a>
+  <button class="link" id="rinuncia" type="button" hidden>Rinuncio al ruolo</button>
   <button class="link" id="esci" type="button" hidden>Esci</button>
   <button class="link" id="aggiorna" type="button" hidden>Aggiorna l'elenco</button>
 </header>
@@ -106,15 +109,14 @@
   </div>
 
   <div id="norme" class="box" hidden>
-    <h2 id="norme-titolo"></h2>
-    <p id="norme-intro"></p>
-    <ol id="norme-punti"></ol>
-    <label class="conferma"><input type="checkbox" id="norme-ok"><span>Ho letto le regole, le accetto e mi impegno a rispettarle.</span></label>
+    <h2>Regole per chi aiuta a valutare le proposte</h2>
+    <p>Prima di continuare leggi le regole di riservatezza e di comportamento per i collaboratori.</p>
+    <label class="conferma"><input type="checkbox" id="norme-ok"><span>Ho letto e accetto le <a href="regole-collaboratori.html" target="_blank" rel="noopener">regole per i collaboratori</a> e mi impegno a rispettarle.</span></label>
     <label for="norme-nome">Nome e cognome</label>
     <input id="norme-nome" type="text" autocomplete="name">
     <button type="button" class="invia" id="norme-invia">Accetto e continuo</button>
     <p id="norme-err" style="color:var(--no);font-weight:650;margin:10px 0 0" hidden></p>
-    <p class="aiuto">Il tuo nome, la data e l'ora dell'accettazione vengono registrati. Se non accetti, premi «Esci» in alto.</p>
+    <p class="aiuto">Il tuo nome e cognome, la data e l'ora dell'accettazione vengono registrati. Se non accetti, premi «Esci» (o «Rinuncio al ruolo») in alto.</p>
   </div>
 
   <div id="caricamento">Caricamento…</div>
@@ -447,7 +449,8 @@
 
   function mostraAccesso(msg) {
     ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "norme"].forEach(i => { $(i).hidden = true; });
-    $("aggiorna").hidden = true; $("esci").hidden = true; $("chi").textContent = ""; $("conteggio").textContent = "";
+    $("aggiorna").hidden = true; $("esci").hidden = true; $("link-regole").hidden = true; $("rinuncia").hidden = true;
+    $("chi").textContent = ""; $("conteggio").textContent = "";
     $("accesso").hidden = false;
     $("accesso-err").textContent = msg || ""; $("accesso-err").hidden = !msg;
     $("codice").focus();
@@ -458,10 +461,7 @@
     ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "accesso"].forEach(i => { $(i).hidden = true; });
     $("aggiorna").hidden = true; $("conteggio").textContent = "";
     normeVersione = n.versione;
-    $("norme-titolo").textContent = n.titolo; $("norme-intro").textContent = n.intro;
-    const ol = $("norme-punti"); ol.innerHTML = "";
-    n.punti.forEach(t => { const li = document.createElement("li"); li.textContent = t; ol.appendChild(li); });
-    $("norme-ok").checked = false; $("norme-err").hidden = true;
+    $("norme-ok").checked = false; $("norme-nome").value = ""; $("norme-err").hidden = true;
     $("norme").hidden = false; window.scrollTo(0, 0);
   }
 
@@ -473,6 +473,7 @@
     titolare = !!r.titolare;
     $("accesso").hidden = true; $("norme").hidden = true; $("esci").hidden = false;
     $("chi").textContent = r.nome;
+    $("link-regole").hidden = false; $("rinuncia").hidden = titolare;
     try { localStorage.setItem("mod-codice", codice); } catch (e) { /* solo per questa visita */ }
     if (r.daAccettare) { mostraNorme(r.norme); return; }
     $("aggiorna").hidden = false; $("tab").hidden = false;
@@ -522,6 +523,17 @@
   $("esci").onclick = () => {
     try { localStorage.removeItem("mod-codice"); } catch (e) { /* nessuna azione */ }
     codice = ""; titolare = false; $("codice").value = ""; mostraAccesso("");
+  };
+
+  $("rinuncia").onclick = async () => {
+    if (!confirm("Vuoi davvero rinunciare al ruolo di collaboratore? Il tuo codice verrà disattivato subito e non potrai più usarlo. Da qui non si può annullare.")) return;
+    try {
+      const r = await chiama("mod_rinuncia");
+      if (!r.ok) { messaggio(r.errore, true); return; }
+      try { localStorage.removeItem("mod-codice"); } catch (e) { /* nessuna azione */ }
+      codice = ""; titolare = false; $("codice").value = "";
+      mostraAccesso("Hai rinunciato al ruolo: il tuo codice è stato disattivato. Grazie per l'aiuto.");
+    } catch (e) { if (!e.accesso) messaggio("Operazione non riuscita: " + (e.message || e), true); }
   };
 
   (async function avvia() {
