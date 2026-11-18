@@ -78,6 +78,7 @@
   #norme button.invia:disabled { opacity:.5; cursor:wait; }
     .sospetta { background:#fbeae8; border:1px solid #e3a59d; color:#7d2514; border-radius:8px; padding:10px 14px; margin-bottom:12px; }
     .sospetta ul { margin:4px 0 0; padding-left:20px; }
+  #zoom-msg { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1d2733; color:#fff; padding:8px 14px; border-radius:8px; }
 [hidden] { display:none !important; }
 </style>
 </head>
@@ -122,7 +123,7 @@
   <!-- ===== NUOVE FOTO ===== -->
   <div id="scheda" hidden>
     <div class="box foto-box">
-      <img id="foto" class="zoomabile" alt="Fotografia proposta" title="Clic per ingrandire">
+      <img id="foto" class="zoomabile" data-quale="nuova" alt="Fotografia proposta" title="Clic per vedere l'originale">
       <div id="foto-assente" hidden>Foto non leggibile da Drive. Controlla il link nel foglio.</div>
       <div class="foto-info" id="foto-info"></div>
     </div>
@@ -194,9 +195,9 @@
       <h2>Confronto delle fotografie</h2>
       <div class="confronto">
         <figure><figcaption>Foto attuale</figcaption>
-          <img id="m-foto-att" class="zoomabile" alt="Foto attuale"><div id="m-foto-att-no" class="assente" hidden>Foto non leggibile</div></figure>
+          <img id="m-foto-att" class="zoomabile" data-quale="attuale" alt="Foto attuale"><div id="m-foto-att-no" class="assente" hidden>Foto non leggibile</div></figure>
         <figure><figcaption>Foto nuova</figcaption>
-          <img id="m-foto-nuova" class="zoomabile" alt="Foto nuova"><div id="m-foto-nuova-no" class="assente" hidden>Foto non leggibile</div></figure>
+          <img id="m-foto-nuova" class="zoomabile" data-quale="nuovamod" alt="Foto nuova"><div id="m-foto-nuova-no" class="assente" hidden>Foto non leggibile</div></figure>
       </div>
     </div>
   </div>
@@ -209,7 +210,7 @@
   <button type="button" id="b-salta">Salta</button>
 </div>
 <div id="msg" hidden><span id="msg-testo"></span><button type="button" id="msg-azione" hidden></button></div>
-<div id="zoom" hidden><img alt=""></div>
+<div id="zoom" hidden><img alt=""><div id="zoom-msg" hidden>Carico la foto originale…</div></div>
 
 <script>
   const $ = (id) => document.getElementById(id);
@@ -322,7 +323,7 @@
     document.querySelectorAll(".errore-campo").forEach(e => e.classList.remove("errore-campo"));
     $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
     if (d.foto) $("foto").src = d.foto;
-    $("foto-info").textContent = d.dimensioni ? "Dimensioni del ritaglio: " + d.dimensioni + " px" : "";
+    $("foto-info").textContent = "Anteprima ridotta: clicca la foto per vedere l'originale." + (d.dimensioni ? " Dimensioni del ritaglio: " + d.dimensioni + " px." : "");
     $("v-nome").textContent = d.nome || "—"; $("v-email").textContent = d.email || (titolare ? "—" : "riservata al proprietario");
     $("v-data").textContent = d.data || "—"; $("v-id").textContent = d.id;
     $("f-comune").value = d.comune; $("f-motto").value = d.motto;
@@ -340,7 +341,7 @@
       riga("Foto in più di una meridiana già pubblicata" + (d.esistente ? " (id " + d.esistente.id + ")" : "") + ".");
       if (d.esistente) {
         const w = document.createElement("div"); w.className = "esistente";
-        if (d.esistente.foto) { const im = document.createElement("img"); im.className = "zoomabile"; im.src = d.esistente.foto; im.alt = "Meridiana già pubblicata"; w.appendChild(im); }
+        if (d.esistente.foto) { const im = document.createElement("img"); im.className = "zoomabile"; im.dataset.quale = "esistente"; im.src = d.esistente.foto; im.alt = "Meridiana già pubblicata"; w.appendChild(im); }
         const t = document.createElement("div");
         t.textContent = [d.esistente.localita, d.esistente.motto ? "«" + d.esistente.motto + "»" : "", d.esistente.anno ? "foto " + d.esistente.anno : ""].filter(Boolean).join(" · ") || "Meridiana già pubblicata";
         w.appendChild(t); av.appendChild(w);
@@ -499,9 +500,20 @@
   $("b-salta").onclick = () => { const s = S[modo]; if (!occupato && s.coda.length > 1) { s.pos++; mostraCorrente(); } };
   $("aggiorna").onclick = () => { const s = S[modo]; carica(s.cur && s.coda.length ? s.cur.id : null); };
   ["nuove", "modifiche"].forEach(m => { $("tab-" + m).onclick = () => { if (m !== modo) { modo = m; mostraCorrente(); } }; });
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     const im = e.target.closest && e.target.closest("img.zoomabile");
-    if (im && im.src) { $("zoom").querySelector("img").src = im.src; $("zoom").hidden = false; }
+    if (!im || !im.src) return;
+    const z = $("zoom").querySelector("img");
+    z.src = im.src; $("zoom").hidden = false;                     // subito l'anteprima, poi l'originale
+    const s = S[modo], quale = im.dataset.quale;
+    if (!quale || !s.cur) return;
+    const id = s.cur.id;
+    $("zoom-msg").hidden = false;
+    try {
+      const r = await chiama("mod_foto", { id, quale });
+      if (r.ok && !$("zoom").hidden && s.cur && s.cur.id === id) z.src = r.foto;
+    } catch (err) { /* resta l'anteprima */ }
+    $("zoom-msg").hidden = true;
   });
   $("zoom").onclick = () => { $("zoom").hidden = true; };
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("zoom").hidden = true; });
