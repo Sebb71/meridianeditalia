@@ -314,8 +314,10 @@
     if (!d.ok) { messaggio(d.errore, true); s.coda.splice(s.pos, 1); mostraCorrente(); return; }
     if (m === "nuove") mostraNuova(d); else mostraMod(d);
     bloccaBarra(false);
-    const prossimo = s.coda[(s.pos + 1) % s.coda.length];     // precarica la successiva
-    if (prossimo && prossimo.id !== id) dettaglio(m, prossimo.id).catch(() => { delete s.cache[prossimo.id]; });
+    [1, 2].forEach(k => {                                     // precarica le due schede successive
+      const p = s.coda[(s.pos + k) % s.coda.length];
+      if (p && p.id !== id) dettaglio(m, p.id).catch(() => { delete s.cache[p.id]; });
+    });
   }
 
   // ---------- nuove foto ----------
@@ -468,7 +470,7 @@
   async function entra(c) {
     codice = c;
     let r;
-    try { r = await chiama("mod_accesso"); }
+    try { r = await chiama("mod_avvio"); }                 // accesso, elenchi e prima scheda in una sola richiesta
     catch (e) { if (!e.accesso) mostraAccesso("Non riesco a contattare il servizio: controlla la connessione e riprova."); return; }
     titolare = !!r.titolare;
     $("accesso").hidden = true; $("norme").hidden = true; $("esci").hidden = false;
@@ -476,8 +478,11 @@
     $("link-regole").hidden = false; $("rinuncia").hidden = titolare;
     try { localStorage.setItem("mod-codice", codice); } catch (e) { /* solo per questa visita */ }
     if (r.daAccettare) { mostraNorme(r.norme); return; }
-    $("aggiorna").hidden = false; $("tab").hidden = false;
-    carica();
+    $("aggiorna").hidden = false; $("tab").hidden = false; $("caricamento").hidden = true;
+    S.nuove.coda = r.nuove || []; S.nuove.cache = {}; S.nuove.pos = 0;
+    S.modifiche.coda = r.modifiche || []; S.modifiche.cache = {}; S.modifiche.pos = 0;
+    if (r.primo && r.primo.ok && S.nuove.coda.length) S.nuove.cache[S.nuove.coda[0].id] = Promise.resolve(r.primo);
+    mostraCorrente();
   }
 
   $("norme-invia").onclick = async () => {
