@@ -24,13 +24,14 @@
 
   function descrivi(v) {
     if (v.tipo === "dati") return `${v.etichetta || v.campo}: ${v.attuale || "(vuoto)"}  →  ${v.nuovo}`;
+    if (v.tipo === "proposta") return v.extra ? "Inviare la tua fotografia in più di una meridiana già pubblicata, per la valutazione." : "Inviare la tua proposta di meridiana per la valutazione.";
     if (v.tipo === "foto") return "Sostituire la fotografia con quella nuova che hai inviato.";
     if (v.tipo === "rimuovi") return "Togliere dal sito questa meridiana.";
     return `Togliere dal sito TUTTE le tue meridiane (${v.attuale}) e cancellare i tuoi dati.`;
   }
 
   async function avvia() {
-    if (!/^[0-9a-f]{40}$/.test(token)) { mostra(paragrafo("Il link non è valido."), paragrafo("Se serve, fai di nuovo la richiesta da “Modifica la tua meridiana”.")); return; }
+    if (!/^[0-9a-f]{40}$/.test(token)) { mostra(paragrafo("Il link non è valido."), paragrafo("Se serve, invia di nuovo la proposta o rifai la richiesta dal sito.")); return; }
     try {
       const r = await fetch("data/config-form.json");
       const cfg = r.ok ? await r.json() : null;
@@ -41,7 +42,7 @@
     try { j = await chiama("conferma_info"); }
     catch (_) { mostra(paragrafo("Non sono riuscito a contattare il servizio (connessione assente o lenta). Ricarica la pagina tra poco, aprendo di nuovo il link dell'email.")); return; }
     if (!j || !j.ok) { mostra(paragrafo((j && j.errore) || "Qualcosa non ha funzionato. Riprova più tardi.")); return; }
-    if (j.stato === "scaduta") { mostra(paragrafo("Il link è scaduto."), link("modifica.html", "Fai di nuovo la richiesta")); return; }
+    if (j.stato === "scaduta") { mostra(paragrafo("Il link è scaduto."), j.origine === "proposta" ? link("inserisci.html", "Invia di nuovo la proposta") : link("modifica.html", "Fai di nuovo la richiesta")); return; }
     if (j.stato === "gia_confermata") { mostra(paragrafo("Questa richiesta è già stata confermata, oppure il link non è più valido.")); return; }
     if (j.stato !== "valida") { mostra(paragrafo("Il link non è valido."), link("modifica.html", "Fai di nuovo la richiesta")); return; }
 
@@ -61,7 +62,9 @@
         $("stato").hidden = false; $("stato").classList.add("bad");
       }
     });
-    mostra(paragrafo(`Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
+    const proposta = (j.voci || []).some(v => v.tipo === "proposta");
+    mostra(paragrafo(proposta ? `Stai confermando la tua proposta per ${j.comune}:` : `Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
+           ...(proposta ? [paragrafo("Dopo la conferma controllo la proposta e, se va bene, la pubblico sul sito. La pubblicazione non è garantita.", "hint")] : []),
            ...(rimozione ? [paragrafo("Dopo la conferma la meridiana non sarà più pubblicata dal prossimo aggiornamento del sito; il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni.", "hint")] : []),
            btn);
   }

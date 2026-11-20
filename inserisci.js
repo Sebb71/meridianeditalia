@@ -800,7 +800,6 @@
       const j = await r.json();
       if (j && j.ok) {
         $("modulo").hidden = true;
-        $("esito-id").textContent = j.id || "";
         $("esito").hidden = false;
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
