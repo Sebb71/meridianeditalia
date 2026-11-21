@@ -15,6 +15,22 @@
    "lat": 45.57097,
    "lon": 10.51069,
    "raggio": 200
-  }
+  },
+  "voci": [
+   {
+    "id": 1,
+    "categoria": "storia",
+    "testo": "Voluta dal proprietario che gestisce azienda vitivinicola per mandare messaggio riferito alla cultura della terra, della produzione del vino e dell'olio d'oliva. I putti rappresentano la continuità generazionale dell'azienda.",
+    "nome": "Alloro",
+    "data": "2026-11-21"
+   },
+   {
+    "id": 2,
+    "categoria": "ricordi",
+    "testo": "ci passavo spesso davanti durante le mie uscite in biciclette e mi rilassava guardarla",
+    "nome": "Anonimo",
+    "data": "2026-11-21"
+   }
+  ]
  }
 ]

@@ -10,6 +10,8 @@ let map = null;
 let markers = {};         // slug -> marker
 let currentRandom = null;
 let routeToken = 0;
+let formCfgPromise = Promise.resolve(null);   // data/config-form.json (modulo, voci): si legge una volta sola
+const MESI = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
 // ---------- utilità ----------
 function escapeHtml(value) {
@@ -56,9 +58,10 @@ async function init() {
 
   fillBrowse();
   fillAllComuni();
-  fetch("data/config-form.json").then(r => (r.ok ? r.json() : null)).then(f => {
+  formCfgPromise = fetch("data/config-form.json").then(r => (r.ok ? r.json() : null)).catch(() => null);
+  formCfgPromise.then(f => {
     if (f && f.attivo) { $("form-link-wrap").hidden = false; $("form-link-foot").hidden = false; }
-  }).catch(() => { /* modulo non configurato */ });
+  });
   setupSearch();
   $("shuffle").addEventListener("click", pickRandom);
   pickRandom();
@@ -243,7 +246,8 @@ async function showComune(arg, token) {
 
   $("sundial-list").innerHTML = items.map((item, i) => {
     const nFoto = 1 + (Array.isArray(item.foto_extra) ? item.foto_extra.length : 0);
-    const sub = [item.localita, isYear(item["anno fotografia"]) ? "foto " + item["anno fotografia"] : "", nFoto > 1 ? nFoto + " foto" : ""]
+    const sub = [item.localita, isYear(item["anno fotografia"]) ? "foto " + item["anno fotografia"] : "", nFoto > 1 ? nFoto + " foto" : "",
+      Array.isArray(item.voci) && item.voci.length ? item.voci.length + (item.voci.length === 1 ? " voce" : " voci") : ""]
       .filter(Boolean).join(" · ");
     return `
     <li>
@@ -300,6 +304,38 @@ function renderZona(z) {
   });
 }
 
+// Le voci dei visitatori: testimonianze personali raggruppate per categoria, con il pulsante per aggiungerne una (che sparisce al limite)
+function meseAnno(v) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(v || ""));
+  return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? MESI[Number(m[2]) - 1] + " " + m[1] : "";
+}
+function vociHtml(item, c, fc) {
+  const voci = Array.isArray(item.voci) ? item.voci : [];
+  const attive = !!(fc && fc.attivo && fc.voci_attive);
+  if (!voci.length && !attive) return "";
+  const cats = fc && Array.isArray(fc.voci_categorie) ? fc.voci_categorie : [];
+  const titolo = (id) => { const x = cats.find(k => k.id === id); return x ? x.titolo : id; };
+  const max = fc && Number(fc.max_voci) >= 1 ? Number(fc.max_voci) : 10;
+  const gruppi = [];
+  voci.forEach(v => {
+    let g = gruppi.find(x => x.id === v.categoria);
+    if (!g) { g = { id: v.categoria, voci: [] }; gruppi.push(g); }
+    g.voci.push(v);
+  });
+  const pos = (id) => { const i = cats.findIndex(k => k.id === id); return i < 0 ? 999 : i; };
+  gruppi.sort((a, b) => pos(a.id) - pos(b.id));
+  let corpo = gruppi.map(g => `<h4 class="voci-cat">${escapeHtml(titolo(g.id))}</h4>` + g.voci.map(v =>
+    `<figure class="voce"><blockquote>${escapeHtml(v.testo)}</blockquote><figcaption>${escapeHtml([v.nome || "Anonimo", meseAnno(v.data)].filter(Boolean).join(" · "))}</figcaption></figure>`).join("")).join("");
+  if (attive) {
+    if (voci.length >= max) corpo += `<p class="voci-fine">Questa meridiana ha raggiunto il numero massimo di voci.</p>`;
+    else {
+      if (!voci.length) corpo += `<p class="voci-fine">Nessuna voce ancora: scrivi la prima.</p>`;
+      corpo += `<p class="voci-azione"><a class="cta-btn" href="voci.html?m=${escapeHtml(c.slug)}/${encodeURIComponent(item.id)}">Aggiungi la tua voce</a></p>`;
+    }
+  }
+  return `<section class="voci"><h3>Le voci di questa meridiana</h3><p class="voci-nota">Testimonianze personali, non verificate dal catalogo.</p>${corpo}</section>`;
+}
+
 async function showDetail(slugArg, id, token) {
   chiudiZonaMap(); zonaCorrente = null;
   const c = bySlug[slugArg] || byKey[slugArg];
@@ -308,6 +344,7 @@ async function showDetail(slugArg, id, token) {
   $("view-detail").innerHTML = `<a class="back" href="#c=${c.slug}">← ${escapeHtml(c.nome)}</a><p class="muted">Caricamento…</p>`;
 
   const list = await loadItems(c.slug);
+  const formCfg = await formCfgPromise;
   if (token !== routeToken) return;
   const item = list.find(x => String(x.id) === String(id));
   if (!item) { location.hash = "c=" + c.slug; return; }
@@ -380,6 +417,7 @@ async function showDetail(slugArg, id, token) {
       <div class="meta" id="meta-foto">${buildMeta(foto[sel])}</div>
       ${item.zona ? `<div class="zona"><button type="button" class="link-btn" id="zona-btn" aria-expanded="false" aria-controls="zona-box">Vedi posizione approssimativa</button>
         <div id="zona-box" hidden></div></div>` : ""}
+      ${vociHtml(item, c, formCfg)}
     </div>
     ${list.length > 1 ? `
       <nav class="pager" aria-label="Altre meridiane del comune">
