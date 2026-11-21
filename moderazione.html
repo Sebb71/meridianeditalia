@@ -97,6 +97,7 @@
 <div id="tab" role="tablist" hidden>
   <button type="button" role="tab" id="tab-nuove">Nuove foto</button>
   <button type="button" role="tab" id="tab-modifiche">Modifiche</button>
+  <button type="button" role="tab" id="tab-voci">Voci</button>
 </div>
 
 <main>
@@ -203,6 +204,38 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== VOCI DEI VISITATORI ===== -->
+  <div id="scheda-vc" hidden>
+    <div id="vc-sospetta" class="sospetta" hidden></div>
+    <div id="vc-avvisi" class="avviso" hidden></div>
+    <div id="scheda-vc-griglia" style="max-width:860px;margin:0 auto">
+      <div class="box" style="margin-bottom:12px">
+        <h2>Voce di un visitatore</h2>
+        <dl>
+          <dt>Sezione</dt><dd id="vv-cat"></dd>
+          <dt>Meridiana</dt><dd id="vv-mer"></dd>
+          <dt>Autore</dt><dd id="vv-autore"></dd>
+          <dt>Inviata il</dt><dd id="vv-data"></dd>
+          <dt>Confermata il</dt><dd id="vv-conf"></dd>
+          <dt>Voci della meridiana</dt><dd id="vv-posti"></dd>
+        </dl>
+      </div>
+      <div class="box" style="margin-bottom:12px">
+        <h2>Testo (puoi correggere refusi e punteggiatura, mai il senso)</h2>
+        <div class="campo"><textarea id="vv-testo" rows="5"></textarea>
+          <div class="aiuto"><span id="vv-conta"></span></div></div>
+        <p id="vv-err" style="color:var(--no);font-weight:650;margin:0" hidden></p>
+      </div>
+      <div class="box">
+        <h2>La meridiana</h2>
+        <div class="esistente">
+          <img id="vv-foto" class="zoomabile" data-quale="meridianavoce" alt="Meridiana" title="Clic per vedere l'originale" hidden>
+          <div id="vv-info"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <div id="barra" hidden>
@@ -217,9 +250,10 @@
 <script>
   const $ = (id) => document.getElementById(id);
   let endpoint = "", codice = "", titolare = false, modo = "nuove", occupato = false, timerMsg = null;
-  const S = { nuove: { coda: [], pos: 0, cache: {}, cur: null }, modifiche: { coda: [], pos: 0, cache: {}, cur: null } };
+  const S = { nuove: { coda: [], pos: 0, cache: {}, cur: null }, modifiche: { coda: [], pos: 0, cache: {}, cur: null }, voci: { coda: [], pos: 0, cache: {}, cur: null } };
   const AZ = { nuove: ["mod_elenco", "mod_carica", "mod_decidi", "mod_ripristina"],
-               modifiche: ["mod_mm_elenco", "mod_mm_carica", "mod_mm_decidi", "mod_mm_ripristina"] };
+               modifiche: ["mod_mm_elenco", "mod_mm_carica", "mod_mm_decidi", "mod_mm_ripristina"],
+               voci: ["mod_vc_elenco", "mod_vc_carica", "mod_vc_decidi", "mod_vc_ripristina"] };
   const PASSATO = { approva: "approvata", rifiuta: "rifiutata", annulla: "annullata" };
 
   // Parla con lo script Google (corpo "text/plain": evita la richiesta preliminare che gli script Google non gestiscono)
@@ -262,17 +296,19 @@
     const n = (m) => S[m].coda.length;
     $("tab-nuove").textContent = "Nuove foto" + (n("nuove") ? " (" + n("nuove") + ")" : "");
     $("tab-modifiche").textContent = "Modifiche" + (n("modifiche") ? " (" + n("modifiche") + ")" : "");
-    ["nuove", "modifiche"].forEach(m => $("tab-" + m).setAttribute("aria-selected", String(m === modo)));
+    $("tab-voci").textContent = "Voci" + (n("voci") ? " (" + n("voci") + ")" : "");
+    ["nuove", "modifiche", "voci"].forEach(m => $("tab-" + m).setAttribute("aria-selected", String(m === modo)));
     const k = n(modo);
-    $("conteggio").textContent = k ? k + (modo === "nuove" ? (k === 1 ? " proposta" : " proposte") : (k === 1 ? " richiesta" : " richieste")) + " in attesa" : "";
+    $("conteggio").textContent = k ? k + (modo === "nuove" ? (k === 1 ? " proposta" : " proposte") : modo === "voci" ? (k === 1 ? " voce" : " voci") : (k === 1 ? " richiesta" : " richieste")) + " in attesa" : "";
   }
 
   function vista(vuoto) {
     const nuove = modo === "nuove";
     $("vuoto").hidden = !vuoto;
-    $("vuoto-titolo").textContent = nuove ? "Nessuna proposta da valutare" : "Nessuna richiesta di modifica da valutare";
+    $("vuoto-titolo").textContent = nuove ? "Nessuna proposta da valutare" : modo === "voci" ? "Nessuna voce da valutare" : "Nessuna richiesta di modifica da valutare";
     $("scheda").hidden = vuoto || !nuove;
-    $("scheda-mm").hidden = vuoto || nuove;
+    $("scheda-mm").hidden = vuoto || modo !== "modifiche";
+    $("scheda-vc").hidden = vuoto || modo !== "voci";
     $("barra").hidden = vuoto;
     $("b-annulla").hidden = !nuove;
   }
@@ -280,8 +316,8 @@
   async function carica(idPrimo) {
     $("caricamento").textContent = "Caricamento…"; $("caricamento").hidden = false;
     try {
-      const risposte = await Promise.all(["nuove", "modifiche"].map(m => chiama(AZ[m][0])));
-      ["nuove", "modifiche"].forEach((m, k) => {
+      const risposte = await Promise.all(["nuove", "modifiche", "voci"].map(m => chiama(AZ[m][0])));
+      ["nuove", "modifiche", "voci"].forEach((m, k) => {
         const r = risposte[k];
         if (!r.ok) throw new Error(r.errore || "risposta non valida");
         const s = S[m]; s.coda = r.coda || []; s.cache = {}; s.pos = 0;
@@ -312,7 +348,7 @@
     catch (e) { delete s.cache[id]; if (!e.accesso) messaggio("Non riesco a caricare la scheda: " + (e.message || e), true); bloccaBarra(false); return; }
     if (m !== modo || !s.coda[s.pos] || s.coda[s.pos].id !== id) return;     // nel frattempo si è passati ad altro
     if (!d.ok) { messaggio(d.errore, true); s.coda.splice(s.pos, 1); mostraCorrente(); return; }
-    if (m === "nuove") mostraNuova(d); else mostraMod(d);
+    if (m === "nuove") mostraNuova(d); else if (m === "voci") mostraVoce(d); else mostraMod(d);
     bloccaBarra(false);
     [1, 2].forEach(k => {                                     // precarica le due schede successive
       const p = s.coda[(s.pos + k) % s.coda.length];
@@ -322,7 +358,7 @@
 
   // ---------- nuove foto ----------
   function mostraNuova(d) {
-    S.modifiche.cur = d; mostraSospetta("mm-sospetta", d.sospetta); mostraSospetta("mm-sospetta", d.sospetta);
+    S.nuove.cur = d; mostraSospetta("sospetta", d.sospetta);
     $("err").hidden = true;
     document.querySelectorAll(".errore-campo").forEach(e => e.classList.remove("errore-campo"));
     $("foto").hidden = !d.foto; $("foto-assente").hidden = !!d.foto;
@@ -413,20 +449,48 @@
     window.scrollTo(0, 0);
   }
 
-  // ---------- decisione (comune alle due schede) ----------
+  // ---------- voci dei visitatori ----------
+  function mostraVoce(d) {
+    S.voci.cur = d;
+    mostraSospetta("vc-sospetta", d.sospetta);
+    $("vv-err").hidden = true; $("vv-testo").classList.remove("errore-campo");
+    $("vv-cat").textContent = d.categoriaTitolo || d.categoria;
+    $("vv-mer").textContent = d.comune + (d.localita ? " · " + d.localita : "") + " · meridiana " + d.idMer;
+    $("vv-autore").textContent = d.nome ? d.nome + (d.email ? " · " + d.email : "") : "—";
+    $("vv-data").textContent = d.data || "—"; $("vv-conf").textContent = d.conferma || "—";
+    $("vv-posti").textContent = d.approvate + " approvate su un massimo di " + d.max;
+    $("vv-testo").value = d.testo; $("vv-testo").maxLength = d.maxCaratteri || 300;
+    aggiornaConta();
+    const av = $("vc-avvisi"); av.innerHTML = "";
+    const riga = (t) => { const p = document.createElement("p"); p.textContent = t; av.appendChild(p); };
+    if (!d.pubblicata) riga("Questa meridiana non risulta più pubblicata: la voce non si può approvare, ma si può rifiutare.");
+    else if (d.approvate >= d.max) riga("Questa meridiana ha già il numero massimo di voci approvate: non si possono approvare altre voci.");
+    av.hidden = !av.childNodes.length;
+    const img = $("vv-foto"); img.hidden = !d.fotoMeridiana; if (d.fotoMeridiana) img.src = d.fotoMeridiana;
+    $("vv-info").textContent = d.pubblicata ? (d.motto ? "«" + d.motto + "»" : "Meridiana senza motto") : "Meridiana non più pubblicata";
+    window.scrollTo(0, 0);
+  }
+  function aggiornaConta() {
+    const t = $("vv-testo");
+    $("vv-conta").textContent = t.value.length + " caratteri su " + (t.maxLength > 0 ? t.maxLength : 300);
+  }
+  $("vv-testo").addEventListener("input", aggiornaConta);
+
+  // ---------- decisione (comune alle tre schede) ----------
   async function decidi(esito) {
     const m = modo, s = S[m];
     if (occupato || !s.cur) return;
-    const id = s.cur.id, errEl = $(m === "nuove" ? "err" : "m-err");
+    const id = s.cur.id, errEl = $({ nuove: "err", modifiche: "m-err", voci: "vv-err" }[m]);
     bloccaBarra(true);
     errEl.hidden = true;
     try {
       const extra = m === "nuove" ? { id, esito, valori: esito === "approva" ? valoriNuova() : {} }
+                                  : m === "voci" ? { id, esito, testo: esito === "approva" ? $("vv-testo").value : "" }
                                   : { id, esito, nuovo: esito === "approva" ? $("m-nuovo").value : "" };
       const r = await chiama(AZ[m][2], extra);
       if (!r.ok) {
         errEl.textContent = r.errore; errEl.hidden = false;
-        const campo = { comune: "f-comune", localita: "f-localita", motto: "f-motto", note: "f-note", anno: "f-anno", nuovo: "m-nuovo" }[r.campo];
+        const campo = { comune: "f-comune", localita: "f-localita", motto: "f-motto", note: "f-note", anno: "f-anno", nuovo: "m-nuovo", testo: "vv-testo" }[r.campo];
         if (campo) { $(campo).classList.add("errore-campo"); $(campo).focus(); }
         messaggio(r.errore, true);
         if (/non è più «/.test(r.errore)) { s.coda.splice(s.pos, 1); mostraCorrente(); return; }
@@ -436,7 +500,7 @@
     const stato = PASSATO[esito];
     s.coda.splice(s.pos, 1); delete s.cache[id]; s.cur = null;
     const testo = m === "modifiche" && esito === "approva" ? "Modifica approvata: sarà applicata entro 10 minuti."
-                : (m === "nuove" ? "Proposta " : "Richiesta ") + stato + ".";
+                : (m === "nuove" ? "Proposta " : m === "voci" ? "Voce " : "Richiesta ") + stato + ".";
     messaggio(testo, false, {
       testo: "Ripristina", fn: async () => {
         try {
@@ -450,7 +514,7 @@
   }
 
   function mostraAccesso(msg) {
-    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "norme"].forEach(i => { $(i).hidden = true; });
+    ["scheda", "scheda-mm", "scheda-vc", "vuoto", "barra", "caricamento", "tab", "norme"].forEach(i => { $(i).hidden = true; });
     $("aggiorna").hidden = true; $("esci").hidden = true; $("link-regole").hidden = true; $("rinuncia").hidden = true;
     $("chi").textContent = ""; $("conteggio").textContent = "";
     $("accesso").hidden = false;
@@ -460,7 +524,7 @@
 
   let normeVersione = "";
   function mostraNorme(n) {
-    ["scheda", "scheda-mm", "vuoto", "barra", "caricamento", "tab", "accesso"].forEach(i => { $(i).hidden = true; });
+    ["scheda", "scheda-mm", "scheda-vc", "vuoto", "barra", "caricamento", "tab", "accesso"].forEach(i => { $(i).hidden = true; });
     $("aggiorna").hidden = true; $("conteggio").textContent = "";
     normeVersione = n.versione;
     $("norme-ok").checked = false; $("norme-nome").value = ""; $("norme-err").hidden = true;
@@ -481,6 +545,7 @@
     $("aggiorna").hidden = false; $("tab").hidden = false; $("caricamento").hidden = true;
     S.nuove.coda = r.nuove || []; S.nuove.cache = {}; S.nuove.pos = 0;
     S.modifiche.coda = r.modifiche || []; S.modifiche.cache = {}; S.modifiche.pos = 0;
+    S.voci.coda = r.voci || []; S.voci.cache = {}; S.voci.pos = 0;
     if (r.primo && r.primo.ok && S.nuove.coda.length) S.nuove.cache[S.nuove.coda[0].id] = Promise.resolve(r.primo);
     mostraCorrente();
   }
@@ -501,11 +566,11 @@
   };
 
   $("b-approva").onclick = () => decidi("approva");
-  $("b-rifiuta").onclick = () => { if (confirm(modo === "nuove" ? "Rifiutare questa proposta? La stessa foto non si potrà reinviare." : "Rifiutare questa richiesta di modifica?")) decidi("rifiuta"); };
+  $("b-rifiuta").onclick = () => { if (confirm(modo === "nuove" ? "Rifiutare questa proposta? La stessa foto non si potrà reinviare." : modo === "voci" ? "Rifiutare questa voce?" : "Rifiutare questa richiesta di modifica?")) decidi("rifiuta"); };
   $("b-annulla").onclick = () => decidi("annulla");
   $("b-salta").onclick = () => { const s = S[modo]; if (!occupato && s.coda.length > 1) { s.pos++; mostraCorrente(); } };
   $("aggiorna").onclick = () => { const s = S[modo]; carica(s.cur && s.coda.length ? s.cur.id : null); };
-  ["nuove", "modifiche"].forEach(m => { $("tab-" + m).onclick = () => { if (m !== modo) { modo = m; mostraCorrente(); } }; });
+  ["nuove", "modifiche", "voci"].forEach(m => { $("tab-" + m).onclick = () => { if (m !== modo) { modo = m; mostraCorrente(); } }; });
   document.addEventListener("click", async (e) => {
     const im = e.target.closest && e.target.closest("img.zoomabile");
     if (!im || !im.src) return;
