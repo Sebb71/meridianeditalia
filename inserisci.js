@@ -6,6 +6,7 @@
   const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024;   // lato massimo inviato, peso massimo
 
   let cfg = null;
+  let noteMin = 50, noteMax = 500;   // lunghezza delle note: dal sito (data/config-form.json)
   let elenco = [], elencoNorm = [], centri = [];
   let foto = null;               // ritaglio confermato, pronto da inviare: { base64, byte, larghezza, altezza }
   let tsToken = "", tsCaricato = false, inviando = false;
@@ -39,6 +40,11 @@
 
     $("modulo").hidden = false;
     if (cfg.sitekey) $("ts-hint").hidden = false;
+    if (Number(cfg.note_max) >= 50) noteMax = Number(cfg.note_max);
+    if (Number(cfg.note_min) >= 0) noteMin = Math.min(noteMax, Number(cfg.note_min));
+    $("note").maxLength = noteMax;
+    $("note").addEventListener("input", aggiornaNote);
+    aggiornaNote();
     try {
       const r = await fetch("data/comuni_elenco.json");
       const lista = await r.json();                       // [nome, latitudine, longitudine]
@@ -466,6 +472,16 @@
   // Se si aggiunge una foto a una meridiana gia' presente, localita', motto, proprieta' e posizione sono quelli della meridiana: non si chiedono
   function mostraCampiMeridiana(mostra) {
     ["blocco-motto", "blocco-proprieta", "pos-box"].forEach(id => { $(id).hidden = !mostra; });
+    aggiornaNote();
+  }
+  // Note: obbligatorie per una meridiana nuova, facoltative per una foto in piu'; il contatore usa gli spazi ridotti come fa il server
+  function lunghezzaNote() { return $("note").value.replace(/\s+/g, " ").trim().length; }
+  function aggiornaNote() {
+    const aggiungi = inModoAggiungi();
+    $("note-conta").textContent = String(lunghezzaNote());
+    $("note-max").textContent = String(noteMax);
+    $("note-label").textContent = aggiungi ? "Note (facoltative)" : "Note *";
+    $("note-regola").textContent = aggiungi ? `(se le scrivi, almeno ${noteMin})` : `(minimo ${noteMin})`;
   }
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 
@@ -741,6 +757,10 @@
     }
     const anno = $("anno").value.trim();
     if (anno && !(/^\d{4}$/.test(anno) && +anno >= 1800 && +anno <= new Date().getFullYear())) segna("anno", "Scegli l'anno dall'elenco.", "anno");
+    const nl = lunghezzaNote();
+    if (nl > noteMax) segna("note", `Le note sono troppo lunghe (massimo ${noteMax} caratteri).`, "note");
+    else if (!inModoAggiungi() && nl < noteMin) segna("note", `Le note sono obbligatorie: servono almeno ${noteMin} caratteri (ne hai scritti ${nl}).`, "note");
+    else if (inModoAggiungi() && nl > 0 && nl < noteMin) segna("note", `Se scrivi delle note, servono almeno ${noteMin} caratteri (ne hai scritti ${nl}).`, "note");
     if (!inModoAggiungi() && !valoreRadio("proprieta")) segna("proprieta", "Indica se la proprietà è privata o pubblica.", "modulo");
     if (!inModoAggiungi() && !pos) segna("posizione", gpsInAttesa ? "Conferma con «Sì, la meridiana è qui» la posizione rilevata dal GPS."
       : "Indica la posizione della meridiana: con il GPS, sulla mappa oppure scrivendo le coordinate.", "pos-box");    

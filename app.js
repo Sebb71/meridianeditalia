@@ -94,6 +94,27 @@ async function pickRandom() {
   $("featured-title").textContent = item.localita ? `${chosen.key} · ${item.localita}` : chosen.key;
   $("featured-link").href = `#m=${chosen.slug}/${encodeURIComponent(item.id)}`;
   $("featured").hidden = false;
+  mostraVoceCaso(item, currentRandom);
+}
+
+// Sotto la foto a caso: una voce a caso di quella meridiana; se non ce ne sono, le note della scheda; se manca anche quella, niente.
+async function mostraVoceCaso(item, chiave) {
+  const box = $("featured-voce");
+  const voci = Array.isArray(item.voci) ? item.voci : [];
+  let testo = "", firma = "";
+  if (voci.length) {
+    const v = voci[Math.floor(Math.random() * voci.length)];
+    const fc = await formCfgPromise;
+    const cat = fc && Array.isArray(fc.voci_categorie) ? fc.voci_categorie.find(k => k.id === v.categoria) : null;
+    testo = v.testo; firma = [v.nome || "Anonimo", cat ? cat.titolo : ""].filter(Boolean).join(" · ");
+  } else if (item.note) {
+    const n = String(item.note);
+    testo = n.length > 280 ? n.slice(0, 280).replace(/\s+\S*$/, "") + "…" : n;
+    firma = "Dalle note della scheda";
+  }
+  if (chiave !== currentRandom) return;                  // nel frattempo e' stata scelta un'altra meridiana
+  box.hidden = !testo;
+  if (testo) { $("featured-voce-testo").textContent = "“" + testo + "”"; $("featured-voce-firma").textContent = firma; }
 }
 
 // ---------- home: ricerca con suggerimenti ----------

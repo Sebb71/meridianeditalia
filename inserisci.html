@@ -138,9 +138,9 @@
       </fieldset>
 
       <div class="field">
-        <label for="note">Note</label>
-        <textarea id="note" rows="3" maxlength="1000" placeholder="Facoltativo. Descrivi quello che vedi e che sai della meridiana, anche quali emozioni ti suscita"></textarea>
-        <p class="hint">Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce.</p>
+        <label for="note" id="note-label">Note *</label>
+        <textarea id="note" rows="4" maxlength="500" placeholder="Descrivi quello che vedi e che sai della meridiana, anche quali emozioni ti suscita"></textarea>
+        <p class="hint"><span id="note-conta">0</span> caratteri su <span id="note-max">500</span> <span id="note-regola">(minimo 50)</span>. Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce.</p>
         <p class="err" id="err-note" hidden></p>
       </div>
 

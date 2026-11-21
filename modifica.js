@@ -8,6 +8,7 @@
   const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024;   // lato massimo inviato, peso massimo
 
   let cfg = null;
+  let noteMin = 50, noteMax = 500;   // lunghezza delle note: dal sito (data/config-form.json)
   let elenco = [], elencoNorm = [];
   let foto = null;               // ritaglio confermato: { base64, byte, larghezza, altezza, imp, impIntera }
   let tsToken = "", tsCaricato = false, inviando = false;
@@ -330,6 +331,11 @@
     const a = valoreRadio("azione");
     if (!a) segna("azione", "Scegli che cosa vuoi fare.", "modulo");
     if (a === "dati" && !Object.keys(datiCambiati()).length) segna("dati", "Indica almeno un dato da cambiare.", "anno");
+    if (a === "dati") {
+      const nl = $("note").value.replace(/\s+/g, " ").trim().length;
+      if (nl > noteMax) segna("note", `Le note sono troppo lunghe (massimo ${noteMax} caratteri).`, "note");
+      else if (nl > 0 && nl < noteMin) segna("note", `Se cambi le note, servono almeno ${noteMin} caratteri (ne hai scritti ${nl}).`, "note");
+    }
     if (a === "foto") {
       if (!foto) { if (imgOrig) segna("foto", "Conferma il ritaglio con il pulsante «Conferma ritaglio».", "crop-ok"); else segna("foto", "Scegli la nuova fotografia.", "foto"); }
       if (!($("c-pubblicazione").checked && $("c-contenuto").checked)) segna("consensi", "Per inviare devi spuntare entrambe le conferme.", "c-pubblicazione");
@@ -403,6 +409,10 @@
     }
     $("modulo").hidden = false;
     if (cfg.sitekey) $("ts-hint").hidden = false;
+    if (Number(cfg.note_max) >= 50) noteMax = Number(cfg.note_max);
+    if (Number(cfg.note_min) >= 0) noteMin = Math.min(noteMax, Number(cfg.note_min));
+    $("note").maxLength = noteMax; $("note-max").textContent = String(noteMax); $("note-min").textContent = String(noteMin);
+    $("note").addEventListener("input", () => { $("note-conta").textContent = String($("note").value.replace(/\s+/g, " ").trim().length); });
     try {
       const r = await fetch("data/comuni_elenco.json");
       const lista = await r.json();                       // [nome, latitudine, longitudine]

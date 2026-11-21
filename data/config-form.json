@@ -33,6 +33,8 @@
    "attiva": false
   }
  ],
+ "note_min": 50,
+ "note_max": 500,
  "ritaglio": {
   "lungo": 800,
   "corto": 600,
