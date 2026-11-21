@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scrivi una voce – Meridiane d'Italia</title>
+  <meta name="description" content="Racconta la storia, i ricordi o il messaggio di una meridiana: la tua voce, controllata prima di essere pubblicata.">
+  <!-- noindex fisso: l'ordine degli attributi impedisce al .bat di cambiarlo quando attivi l'indicizzazione -->
+  <meta content="noindex, nofollow" name="robots">
+  <link rel="canonical" href="https://sebb71.github.io/meridianeditalia/voci.html">
+  <meta name="theme-color" content="#e9dcc7">
+  <!--GC--><script data-goatcounter="https://meridianeditalia.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script><!--/GC-->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="inserisci.css">
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <!--INTESTAZIONE--><header class="topbar">
+    <a class="brand" href="index.html" aria-label="Vai alla home di Meridiane d'Italia">
+      <img class="brand-icon" src="img/logo.svg" alt="" width="85" height="85">
+      <span class="brand-text">
+        <strong>Meridiane d'Italia</strong>
+        <small>Catalogo culturale</small>
+      </span>
+    </a>
+  </header><!--/INTESTAZIONE-->
+
+  <main class="privacy form-page">
+    <a class="back" id="indietro" href="index.html">← Meridiane d'Italia</a>
+    <p class="eyebrow">LE VOCI DELLE MERIDIANE</p>
+    <h1 class="page-title">Scrivi una voce</h1>
+
+    <p id="form-off" class="notice" hidden>Questa funzione non è ancora attiva.</p>
+    <p id="mer-errore" class="notice" hidden>Non trovo la meridiana a cui scrivere. Torna al catalogo e apri la scheda della meridiana.</p>
+    <p id="mer-piena" class="notice" hidden>Questa meridiana ha già raccolto il numero massimo di voci: grazie a chi ha scritto!</p>
+
+    <div id="mer-riepilogo" class="gia-voce" hidden></div>
+
+    <form id="modulo" novalidate hidden>
+      <p>Racconta quello che sai, ricordi o pensi di questa meridiana. <strong>Controllo ogni voce prima di pubblicarla</strong>, quindi non comparirà subito.
+      Sono testimonianze personali: il catalogo non le verifica.</p>
+
+      <fieldset class="field" id="blocco-categoria">
+        <legend>Di che cosa vuoi parlare? *</legend>
+        <div id="categorie"></div>
+        <p class="err" id="err-categoria" hidden></p>
+      </fieldset>
+
+      <div class="field">
+        <label for="testo">La tua voce *</label>
+        <textarea id="testo" rows="5" maxlength="300"></textarea>
+        <p class="hint"><span id="conta">0</span> caratteri su <span id="massimo">300</span>. Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce. Non scrivere nomi, indirizzi o dati di persone private.</p>
+        <p class="err" id="err-testo" hidden></p>
+      </div>
+
+      <fieldset class="field">
+        <legend>Vuoi che il tuo nome compaia sotto la voce? *</legend>
+        <label class="choice"><input type="radio" name="credito" value="mostra"><span>Sì, mostra il mio nome o pseudonimo che ti indico di seguito</span></label>
+        <label class="choice"><input type="radio" name="credito" value="anonimo"><span>No, preferisco restare anonimo (la voce sarà firmata «Anonimo»)</span></label>
+        <div id="nome-box" hidden>
+          <label for="nome">Nome da mostrare (può essere anche uno pseudonimo)</label>
+          <input id="nome" type="text" maxlength="60" autocomplete="name">
+          <p class="err" id="err-nome" hidden></p>
+        </div>
+        <p class="err" id="err-credito" hidden></p>
+      </fieldset>
+
+      <div class="field">
+        <label for="email">La tua email *</label>
+        <input id="email" type="email" maxlength="120" autocomplete="email">
+        <p class="hint">Non viene mai pubblicata. Ti scrivo per farti confermare l'invio (senza conferma la voce non viene valutata), per un eventuale chiarimento e come traccia del tuo permesso.</p>
+        <p class="err" id="err-email" hidden></p>
+      </div>
+
+      <div class="hp" aria-hidden="true"><label>Non compilare questo campo<input id="sito_web" type="text" tabindex="-1" autocomplete="off"></label></div>
+
+      <fieldset class="field checks">
+        <legend class="sr-only">Conferme</legend>
+        <label class="choice"><input type="checkbox" id="c-pubblicazione">
+          <span>Sono l'autore del testo e concedo a Meridiane d'Italia il permesso gratuito e non esclusivo di pubblicarlo sulla scheda della meridiana, con il nome che ho scelto. Il permesso può passare a chi in futuro proseguirà il progetto (anche un'associazione o una società), solo per la pubblicazione nel catalogo. Il testo resta mio e posso chiedere in qualsiasi momento la rimozione della voce e la cancellazione dei miei dati. Se il progetto verrà ceduto, il nuovo titolare riceverà anche il mio nome e il mio indirizzo e-mail, per poter continuare a contattarmi. *</span></label>
+        <label class="choice"><input type="checkbox" id="c-contenuto">
+          <span>Nel testo non ci sono dati personali di altre persone (nomi di persone private, indirizzi, telefoni) né offese. *</span></label>
+        <label class="choice"><input type="checkbox" id="c-privacy">
+          <span>Ho letto l'<a href="privacy.html#voci" target="_blank" rel="noopener">informativa privacy</a>, acconsento al trattamento dei miei dati (email ed eventuale nome) per valutare e pubblicare la voce e per essere contattato, e dichiaro di essere maggiorenne. *</span></label>
+        <p class="err" id="err-consensi" hidden></p>
+      </fieldset>
+
+      <div id="ts-box" class="field"><p class="hint" id="ts-hint" hidden>La verifica anti-spam (Cloudflare Turnstile) compare quando inizi a compilare il modulo.</p></div>
+
+      <button type="submit" id="invia" class="submit-btn">Invia la voce</button>
+      <p id="stato" class="status" role="status" aria-live="polite" hidden></p>
+    </form>
+
+    <section id="esito" class="notice ok" hidden>
+      <h2>Quasi fatto: conferma la tua email</h2>
+      <p>Ti ho scritto un'email: apri il link e premi «Conferma». <strong>Senza conferma entro 48 ore la voce non viene presa in considerazione.</strong> Controlla anche la posta indesiderata.</p>
+      <p>Dopo la conferma leggerò la voce e, se va bene, la pubblicherò sulla scheda della meridiana.</p>
+      <p><a href="index.html">Torna alla home</a></p>
+    </section>
+  </main>
+
+  <!--PIEDE--><footer>
+    <p><span id="footer-copy">© 2026 Sebb71</span> · Meridiane d'Italia — le fotografie appartengono ai rispettivi autori, indicati accanto a ciascuna foto. Riproduzione vietata senza il consenso degli autori. Confini dei comuni: ISTAT.</p>
+    <p><span id="form-link-foot" hidden><a href="inserisci.html">Inserisci la tua meridiana</a> · </span><a href="il-progetto.html">Il progetto</a> · <a href="privacy.html">Informativa privacy</a><span id="map-reset-sep" hidden> · </span><button type="button" id="map-reset" class="link-btn" hidden>Disattiva la mappa (revoca il consenso)</button></p>
+  </footer><!--/PIEDE-->
+  <script src="voci.js"></script>
+  <script src="menu.js" defer></script>
+</body>
+</html>

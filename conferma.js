@@ -24,6 +24,7 @@
 
   function descrivi(v) {
     if (v.tipo === "dati") return `${v.etichetta || v.campo}: ${v.attuale || "(vuoto)"}  →  ${v.nuovo}`;
+    if (v.tipo === "voce") return `Inviare la tua voce «${v.etichetta}» per la valutazione: «${v.nuovo}»`;
     if (v.tipo === "proposta") return v.extra ? "Inviare la tua fotografia in più di una meridiana già pubblicata, per la valutazione." : "Inviare la tua proposta di meridiana per la valutazione.";
     if (v.tipo === "foto") return "Sostituire la fotografia con quella nuova che hai inviato.";
     if (v.tipo === "rimuovi") return "Togliere dal sito questa meridiana.";
@@ -42,7 +43,7 @@
     try { j = await chiama("conferma_info"); }
     catch (_) { mostra(paragrafo("Non sono riuscito a contattare il servizio (connessione assente o lenta). Ricarica la pagina tra poco, aprendo di nuovo il link dell'email.")); return; }
     if (!j || !j.ok) { mostra(paragrafo((j && j.errore) || "Qualcosa non ha funzionato. Riprova più tardi.")); return; }
-    if (j.stato === "scaduta") { mostra(paragrafo("Il link è scaduto."), j.origine === "proposta" ? link("inserisci.html", "Invia di nuovo la proposta") : link("modifica.html", "Fai di nuovo la richiesta")); return; }
+    if (j.stato === "scaduta") { mostra(paragrafo("Il link è scaduto."), j.origine === "proposta" ? link("inserisci.html", "Invia di nuovo la proposta") : j.origine === "voce" ? link("index.html", "Vai alla home e riprova dalla scheda") : link("modifica.html", "Fai di nuovo la richiesta")); return; }
     if (j.stato === "gia_confermata") { mostra(paragrafo("Questa richiesta è già stata confermata, oppure il link non è più valido.")); return; }
     if (j.stato !== "valida") { mostra(paragrafo("Il link non è valido."), link("modifica.html", "Fai di nuovo la richiesta")); return; }
 
@@ -62,8 +63,9 @@
         $("stato").hidden = false; $("stato").classList.add("bad");
       }
     });
-    const proposta = (j.voci || []).some(v => v.tipo === "proposta");
-    mostra(paragrafo(proposta ? `Stai confermando la tua proposta per ${j.comune}:` : `Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
+    const proposta = (j.voci || []).some(v => v.tipo === "proposta"), voce = (j.voci || []).some(v => v.tipo === "voce");
+    mostra(paragrafo(voce ? `Stai confermando la tua voce su una meridiana di ${j.comune}:` : proposta ? `Stai confermando la tua proposta per ${j.comune}:` : `Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
+           ...(voce ? [paragrafo("Dopo la conferma leggo la voce e, se va bene, la pubblico sulla scheda con il nome che hai scelto. La pubblicazione non è garantita.", "hint")] : []),
            ...(proposta ? [paragrafo("Dopo la conferma controllo la proposta e, se va bene, la pubblico sul sito. La pubblicazione non è garantita.", "hint")] : []),
            ...(rimozione ? [paragrafo("Dopo la conferma la meridiana non sarà più pubblicata dal prossimo aggiornamento del sito; il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni.", "hint")] : []),
            btn);

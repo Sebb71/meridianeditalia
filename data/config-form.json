@@ -4,6 +4,35 @@
  "sitekey": "0x4AAAAAAFb5te_xB0NSBbyn",
  "max_foto": 5,
  "raggio_m": 200,
+ "voci_attive": true,
+ "max_voci": 10,
+ "voci_max_caratteri": 300,
+ "voci_categorie": [
+  {
+   "id": "storia",
+   "titolo": "La storia di questa meridiana",
+   "sottotitolo": "Sai chi l'ha realizzata, quando, o se \u00e8 stata restaurata? Racconta quello che sai.",
+   "attiva": true
+  },
+  {
+   "id": "ricordi",
+   "titolo": "I miei ricordi",
+   "sottotitolo": "Che ricordi o emozioni ti suscita questa meridiana?",
+   "attiva": true
+  },
+  {
+   "id": "messaggio",
+   "titolo": "Il messaggio della meridiana",
+   "sottotitolo": "Secondo te, che messaggio vuole trasmettere? Che cosa significano il motto e i disegni?",
+   "attiva": true
+  },
+  {
+   "id": "altro",
+   "titolo": "Altro",
+   "sottotitolo": "Qualcosa da aggiungere che non rientra nelle altre voci.",
+   "attiva": false
+  }
+ ],
  "ritaglio": {
   "lungo": 800,
   "corto": 600,
