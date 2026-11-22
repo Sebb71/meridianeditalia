@@ -11,5 +11,23 @@
   "autore": "Sebb71",
   "copyright": "© 2026 Sebb71",
   "id_foto": 15
+ },
+ {
+  "id": 24,
+  "localita": "Centro",
+  "foto": "proposta_20261114_b11cb8c9",
+  "motto": "Senza il sol nulla son io, nulla sei tu senza Dio",
+  "anno fotografia": "2026",
+  "proprieta": "Privata",
+  "google maps": "",
+  "note": "Bellissima meridiana con motto che risulta come un monito e richiama alla religione cristiana",
+  "autore": "Sebb71",
+  "copyright": "© 2026 Sebb71",
+  "id_foto": 24,
+  "zona": {
+   "lat": 45.3861,
+   "lon": 10.48866,
+   "raggio": 200
+  }
  }
 ]

@@ -1,6 +1,6 @@
 {
- "totale": 7,
- "aggiornato": "2026-11-21",
+ "totale": 8,
+ "aggiornato": "2026-11-22",
  "copyright_sito": "© 2026 Sebb71",
  "comuni": [
   {
@@ -21,7 +21,7 @@
    "sigla": "MN",
    "provincia": "Mantova",
    "regione": "Lombardia",
-   "n": 1,
+   "n": 2,
    "lat": 45.37883,
    "lon": 10.49487
   },

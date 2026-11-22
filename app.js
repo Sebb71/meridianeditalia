@@ -110,7 +110,7 @@ async function mostraVoceCaso(item, chiave) {
   } else if (item.note) {
     const n = String(item.note);
     testo = n.length > 280 ? n.slice(0, 280).replace(/\s+\S*$/, "") + "…" : n;
-    firma = "Dalle note della scheda";
+    firma = nomeAutore(item.autore);
   }
   if (chiave !== currentRandom) return;                  // nel frattempo e' stata scelta un'altra meridiana
   box.hidden = !testo;
@@ -330,10 +330,12 @@ function meseAnno(v) {
   const m = /^(\d{4})-(\d{2})/.exec(String(v || ""));
   return m && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? MESI[Number(m[2]) - 1] + " " + m[1] : "";
 }
-function vociHtml(item, c, fc) {
+const nomeAutore = (a) => { const t = String(a || "").trim(); return !t || /^autore anonimo$/i.test(t) ? "Anonimo" : t; };
+function vociHtml(item, c, fc, note) {
   const voci = Array.isArray(item.voci) ? item.voci : [];
+  const noteList = Array.isArray(note) ? note : [];
   const attive = !!(fc && fc.attivo && fc.voci_attive);
-  if (!voci.length && !attive) return "";
+  if (!voci.length && !noteList.length && !attive) return "";
   const cats = fc && Array.isArray(fc.voci_categorie) ? fc.voci_categorie : [];
   const titolo = (id) => { const x = cats.find(k => k.id === id); return x ? x.titolo : id; };
   const max = fc && Number(fc.max_voci) >= 1 ? Number(fc.max_voci) : 10;
@@ -345,16 +347,21 @@ function vociHtml(item, c, fc) {
   });
   const pos = (id) => { const i = cats.findIndex(k => k.id === id); return i < 0 ? 999 : i; };
   gruppi.sort((a, b) => pos(a.id) - pos(b.id));
-  let corpo = gruppi.map(g => `<h4 class="voci-cat">${escapeHtml(titolo(g.id))}</h4>` + g.voci.map(v =>
-    `<figure class="voce"><blockquote>${escapeHtml(v.testo)}</blockquote><figcaption>${escapeHtml([v.nome || "Anonimo", meseAnno(v.data)].filter(Boolean).join(" · "))}</figcaption></figure>`).join("")).join("");
+  const fig = (testo, firma) => `<figure class="voce"><blockquote>${escapeHtml(testo)}</blockquote><figcaption>${escapeHtml(firma)}</figcaption></figure>`;
+  // prima voce: le note della scheda (una per foto che ne ha), poi le voci dei visitatori per categoria
+  let corpo = noteList.length ? `<h4 class="voci-cat">Note della scheda</h4>` + noteList.map(n => fig(n.testo, [nomeAutore(n.autore), n.anno ? "foto " + n.anno : ""].filter(Boolean).join(" · "))).join("") : "";
+  corpo += gruppi.map(g => `<h4 class="voci-cat">${escapeHtml(titolo(g.id))}</h4>` + g.voci.map(v =>
+    fig(v.testo, [v.nome || "Anonimo", meseAnno(v.data)].filter(Boolean).join(" · "))).join("")).join("");
+  // il pulsante sta subito dopo la riga sulle testimonianze, prima dell'inizio delle voci
+  let azione = "";
   if (attive) {
-    if (voci.length >= max) corpo += `<p class="voci-fine">Questa meridiana ha raggiunto il numero massimo di voci.</p>`;
+    if (voci.length >= max) azione = `<p class="voci-fine">Questa meridiana ha raggiunto il numero massimo di voci.</p>`;
     else {
-      if (!voci.length) corpo += `<p class="voci-fine">Nessuna voce ancora: scrivi la prima.</p>`;
-      corpo += `<p class="voci-azione"><a class="cta-btn" href="voci.html?m=${escapeHtml(c.slug)}/${encodeURIComponent(item.id)}">Aggiungi la tua voce</a></p>`;
+      if (!voci.length) azione += `<p class="voci-fine">Nessuna voce dei visitatori ancora: scrivi la prima.</p>`;
+      azione += `<p class="voci-azione"><a class="cta-btn" href="voci.html?m=${escapeHtml(c.slug)}/${encodeURIComponent(item.id)}">Aggiungi la tua voce</a></p>`;
     }
   }
-  return `<section class="voci"><h3>Le voci di questa meridiana</h3><p class="voci-nota">Testimonianze personali, non verificate dal catalogo.</p>${corpo}</section>`;
+  return `<section class="voci"><h3>Le voci di questa meridiana</h3><p class="voci-nota">Testimonianze personali, non verificate dal catalogo.</p>${azione}${corpo}</section>`;
 }
 
 async function showDetail(slugArg, id, token) {
@@ -377,17 +384,20 @@ async function showDetail(slugArg, id, token) {
   const gm = String(item["google maps"] ?? "").trim();
 
   // Foto della meridiana: la principale (la piu' vecchia pubblicata) e le eventuali foto in piu'
-  const foto0 = { foto: item.foto, anno: String(item["anno fotografia"] ?? "").trim(), note: item.note || "", copyright: item.copyright || "", principale: true };
+  const foto0 = { foto: item.foto, anno: String(item["anno fotografia"] ?? "").trim(), note: item.note || "", copyright: item.copyright || "", autore: item.autore || "", principale: true };
   const extra = (Array.isArray(item.foto_extra) ? item.foto_extra : []).map(e => ({
-    foto: e.foto, anno: String(e["anno fotografia"] ?? "").trim(), note: e.note || "", copyright: e.copyright || "", principale: false }));
+    foto: e.foto, anno: String(e["anno fotografia"] ?? "").trim(), note: e.note || "", copyright: e.copyright || "", autore: e.autore || "", principale: false }));
   const annoNum = (p) => isYear(p.anno) ? Number(p.anno) : Infinity;
   const foto = [foto0, ...extra].map((p, i) => ({ p, i })).sort((a, b) => (annoNum(a.p) - annoNum(b.p)) || (a.i - b.i)).map(x => x.p);   // dalla piu' vecchia all'ultima
   let sel = Math.max(0, foto.findIndex(p => p.principale));
 
+  // Le note delle foto non stanno piu' nei dati della scheda: sono la prima voce ("Note della scheda"), con il nome dell'autore
+  const noteScheda = foto.filter(p => p.note).sort((a, b) => (b.principale ? 1 : 0) - (a.principale ? 1 : 0))
+    .map(p => ({ testo: p.note, autore: p.autore, anno: foto.length > 1 && isYear(p.anno) ? p.anno : "" }));
+
   // Dati che cambiano da foto a foto (anno, note); proprieta' e posizione sono della meridiana
   const buildMeta = (p) => {
     const notes = [];
-    if (p.note) notes.push(p.note);
     if (p.anno && !isYear(p.anno)) notes.push(p.anno);
     if (gm && !isUrl(gm) && !isCoord(gm)) notes.push(gm);
     const meta = [];
@@ -438,7 +448,7 @@ async function showDetail(slugArg, id, token) {
       <div class="meta" id="meta-foto">${buildMeta(foto[sel])}</div>
       ${item.zona ? `<div class="zona"><button type="button" class="link-btn" id="zona-btn" aria-expanded="false" aria-controls="zona-box">Vedi posizione approssimativa</button>
         <div id="zona-box" hidden></div></div>` : ""}
-      ${vociHtml(item, c, formCfg)}
+      ${vociHtml(item, c, formCfg, noteScheda)}
     </div>
     ${list.length > 1 ? `
       <nav class="pager" aria-label="Altre meridiane del comune">
