@@ -2,6 +2,8 @@
 scripts/
 aggiorna_catalogo.bat
 anteprima_catalogo.bat
+# Script di Google Apps Script (si incollano nell'editor di Google, non vanno pubblicati)
+*.gs
 catalogo/foto/
 catalogo/confini/
 catalogo/meridiane.ods

@@ -8,6 +8,8 @@
   const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024;   // lato massimo inviato, peso massimo
 
   let cfg = null;
+  let voceDisponibili = false, vMax = 300;
+  const V_MIN = 10;                  // lunghezza minima del testo di una voce (come nello script)
   let noteMin = 50, noteMax = 500;   // lunghezza delle note: dal sito (data/config-form.json)
   let elenco = [], elencoNorm = [];
   let foto = null;               // ritaglio confermato: { base64, byte, larghezza, altezza, imp, impIntera }
@@ -217,7 +219,6 @@
     s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     s.async = true;
     s.onload = () => {
-      $("ts-hint").hidden = true;
       window.turnstile.render("#ts-box", {
       sitekey: cfg.sitekey, language: "it", action: "modifica",
         callback: (t) => { tsToken = t; },
@@ -266,6 +267,7 @@
     const token = ++merToken;
     merDisponibili = false;
     $("mer-box").hidden = true; $("err-mer").hidden = true; $("mer-lista").innerHTML = "";
+    voceDisponibili = false; $("ogg-box").hidden = true; $("voce-box").hidden = true; $("voce-lista").innerHTML = "";
     if (!label) return;
     const c = (await caricaIndiceSito())[label];
     let items = [];
@@ -276,9 +278,11 @@
       } catch (_) { items = []; }
     }
     if (token !== merToken) return;
+    $("ogg-box").hidden = false;
     $("mer-box").hidden = false;
     if (!items.length) {
       $("mer-intro").textContent = `Nel catalogo non ci sono ancora meridiane pubblicate in ${label}. Qui si possono modificare solo quelle già pubblicate.`;
+      aggiornaOggetto();
       return;
     }
     const nFoto = items.reduce((n, it) => n + 1 + (Array.isArray(it.foto_extra) ? it.foto_extra.length : 0), 0);
@@ -300,15 +304,55 @@
       return `<li class="hint" style="margin:6px 0 0"><strong>${esc(titolo)}</strong></li>${righe}`;
     }).join("");
     merDisponibili = true;
+    costruisciVoci(items, c);
+    aggiornaOggetto();
+  }
+
+  // Le voci pubblicate nel comune (dai dati del sito): la persona sceglie la propria
+  function costruisciVoci(items, c) {
+    const cats = Array.isArray(cfg.voci_categorie) ? cfg.voci_categorie : [];
+    const titolo = (id) => { const x = cats.find(k => k.id === id); return x ? x.titolo : id; };
+    let n = 0;
+    $("voce-lista").innerHTML = items.map((it, i) => {
+      const voci = Array.isArray(it.voci) ? it.voci : [];
+      if (!voci.length) return "";
+      n += voci.length;
+      const tit = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      const righe = voci.map(v => {
+        const t = String(v.testo || "");
+        return `<li class="gia-voce"><label class="choice" style="margin:0;align-items:flex-start">
+          <input type="radio" name="voce" value="${esc(v.id)}">
+          <span class="gia-testo"><strong>${esc(titolo(v.categoria))}</strong><span>“${esc(t.slice(0, 140))}${t.length > 140 ? "…" : ""}”</span><span>${esc(v.nome || "Anonimo")}</span>
+            <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></label></li>`;
+      }).join("");
+      return `<li class="hint" style="margin:6px 0 0"><strong>${esc(tit)}</strong></li>${righe}`;
+    }).join("");
+    voceDisponibili = n > 0;
+    $("voce-intro").textContent = n ? (n === 1 ? "Nel catalogo c'è 1 voce in questo comune. " : `Nel catalogo ci sono ${n} voci in questo comune. `) + "Scegli la tua:" : "";
+  }
+
+  // Che cosa si modifica: la propria foto (come prima) oppure una propria voce
+  function aggiornaOggetto() {
+    const o = valoreRadio("oggetto") || "foto";
+    const pronto = !$("ogg-box").hidden;
+    $("mer-box").hidden = !(pronto && o === "foto");
+    $("voce-box").hidden = !(pronto && o === "voce");
+    if (!voceDisponibili) $("voce-intro").textContent = "Nel catalogo non ci sono ancora voci pubblicate in questo comune.";
+    $("azione-foto-box").hidden = o !== "foto";
+    $("azione-voce-box").hidden = o !== "voce";
+    aggiornaSezioni();
   }
 
   // ---------- sezioni secondo l'azione scelta ----------
   function aggiornaSezioni() {
-    const a = valoreRadio("azione");
-    $("sez-dati").hidden = a !== "dati";
-    $("sez-foto").hidden = a !== "foto";
-    $("avviso-rimozione").hidden = !(a === "rimuovi" || a === "rimuovi_tutte");
-    $("err-azione").hidden = true;
+    const o = valoreRadio("oggetto") || "foto";
+    const a = o === "voce" ? valoreRadio("azione_voce") : valoreRadio("azione");
+    $("sez-dati").hidden = !(o === "foto" && a === "dati");
+    $("sez-foto").hidden = !(o === "foto" && a === "foto");
+    $("sez-voce").hidden = !(o === "voce" && a === "voce_testo");
+    $("avviso-rimozione").hidden = !(o === "foto" && (a === "rimuovi" || a === "rimuovi_tutte"));
+    $("avviso-rimozione-voce").hidden = !(o === "voce" && (a === "voce_rimuovi" || a === "voce_rimuovi_tutte"));
+    $("err-azione").hidden = true; $("err-azione-voce").hidden = true;
     $("invia").textContent = "Invia la richiesta";
   }
 
@@ -320,7 +364,27 @@
     ["motto", "note"].forEach(k => { const v = $(k).value.trim(); if (v) d[k] = v; });
     return d;
   }
+  function validaVoce() {
+    pulisciErrori();
+    let primo = null;
+    const segna = (campo, msg, elId) => { errore(campo, msg); if (!primo) primo = $(elId || campo); };
+    if (!trovaEsatto($("comune").value)) segna("comune", "Scegli il comune dall'elenco dei suggerimenti.", "comune");
+    else if (!voceDisponibili) segna("voce", "In questo comune non ci sono voci pubblicate da modificare.", "voce-box");
+    else if (!valoreRadio("voce")) segna("voce", "Scegli la tua voce dall'elenco.", "voce-box");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) segna("email", "Scrivi un indirizzo email valido.", "email");
+    const a = valoreRadio("azione_voce");
+    if (!a) segna("azione-voce", "Scegli che cosa vuoi fare.", "modulo");
+    if (a === "voce_testo") {
+      const n = $("v-testo").value.replace(/\s+/g, " ").trim().length;
+      if (n < V_MIN) segna("v-testo", `Scrivi almeno ${V_MIN} caratteri (ne hai scritti ${n}).`, "v-testo");
+      else if (n > vMax) segna("v-testo", `Il testo è troppo lungo (massimo ${vMax} caratteri).`, "v-testo");
+    }
+    if (cfg.sitekey && !tsToken) { stato("Completa la verifica anti-spam qui sopra, poi invia di nuovo.", true); if (!primo) primo = $("ts-box"); }
+    if (primo) { primo.scrollIntoView({ behavior: "smooth", block: "center" }); if (primo.focus) primo.focus({ preventScroll: true }); return false; }
+    return true;
+  }
   function valida() {
+    if ((valoreRadio("oggetto") || "foto") === "voce") return validaVoce();
     pulisciErrori();
     let primo = null;
     const segna = (campo, msg, elId) => { errore(campo, msg); if (!primo) primo = $(elId || campo); };
@@ -353,13 +417,20 @@
     if (!valida()) return;
     inviando = true; $("invia").disabled = true;
     stato("Invio in corso… non chiudere la pagina.");
-    const a = valoreRadio("azione");
-    const payload = {
+    const eVoce = (valoreRadio("oggetto") || "foto") === "voce";
+    const a = eVoce ? valoreRadio("azione_voce") : valoreRadio("azione");
+    const payload = eVoce ? {
+      azione: "modifica_voce", tipo: a,
+      comune: trovaEsatto($("comune").value), id_voce: valoreRadio("voce"),
+      email: $("email").value.trim(), codice: $("codice").value.trim(),
+      sito_web: $("sito_web").value, turnstile: tsToken
+    } : {
       azione: "modifica", tipo: a,
       comune: trovaEsatto($("comune").value), id_meridiana: valoreRadio("mer"),
       email: $("email").value.trim(), codice: $("codice").value.trim(),
       sito_web: $("sito_web").value, turnstile: tsToken
     };
+    if (eVoce && a === "voce_testo") payload.testo = $("v-testo").value;
     if (a === "dati") payload.dati = datiCambiati();
     if (a === "foto") {
       Object.assign(payload, { foto: foto.base64, impronta: foto.imp || "", impronta_intera: foto.impIntera || "",
@@ -377,7 +448,8 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         // un testo non ammesso (link, contatti, parole vietate): il messaggio compare sotto il campo, che riceve il cursore
-        const campoTesto = ["motto", "note", "localita", "nome", "indicazioni"].find(x => j && Array.isArray(j.campi) && j.campi.includes(x) && $("err-" + x));
+        const campoTesto = (eVoce && j && Array.isArray(j.campi) && j.campi.includes("testo")) ? "v-testo"
+          : ["motto", "note", "localita", "nome", "indicazioni"].find(x => j && Array.isArray(j.campi) && j.campi.includes(x) && $("err-" + x));
         if (campoTesto) { pulisciErrori(); errore(campoTesto, j.errore); stato("Controlla il testo segnalato qui sopra e riprova.", true); $(campoTesto).focus(); }
         else stato((j && j.errore) || "L'invio non è riuscito. Riprova.", true);
         reimpostaTurnstile();
@@ -408,7 +480,6 @@
                  consCorto: Math.max(corto, cfg.ritaglio.consigliato_corto || soglia.consCorto) };
     }
     $("modulo").hidden = false;
-    if (cfg.sitekey) $("ts-hint").hidden = false;
     if (Number(cfg.note_max) >= 50) noteMax = Number(cfg.note_max);
     if (Number(cfg.note_min) >= 0) noteMin = Math.min(noteMax, Number(cfg.note_min));
     $("note").maxLength = noteMax; $("note-max").textContent = String(noteMax); $("note-min").textContent = String(noteMin);
@@ -424,6 +495,11 @@
     $("comune").addEventListener("input", suggerisci);
     $("comune").addEventListener("change", () => { const e = trovaEsatto($("comune").value); aggiornaMeridiane(e); });
     document.querySelectorAll('input[name="azione"]').forEach(el => el.addEventListener("change", aggiornaSezioni));
+    document.querySelectorAll('input[name="azione_voce"]').forEach(el => el.addEventListener("change", aggiornaSezioni));
+    document.querySelectorAll('input[name="oggetto"]').forEach(el => el.addEventListener("change", aggiornaOggetto));
+    if (Number(cfg.voci_max_caratteri) >= 100) vMax = Number(cfg.voci_max_caratteri);
+    $("v-testo").maxLength = vMax; $("v-max").textContent = String(vMax);
+    $("v-testo").addEventListener("input", () => { $("v-conta").textContent = String($("v-testo").value.replace(/\s+/g, " ").trim().length); });
     $("foto").addEventListener("change", sceltaFoto);
     $("crop-ok").addEventListener("click", confermaRitaglio);
     $("crop-reset").addEventListener("click", () => { r = { x: 0, y: 0, w: 1, h: 1 }; aggiornaRitaglio(); });

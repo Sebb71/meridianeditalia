@@ -58,7 +58,6 @@
     $("testo").maxLength = massimo; $("massimo").textContent = String(massimo);
     riempiCategorie();
     $("modulo").hidden = false;
-    if (cfg.sitekey) $("ts-hint").hidden = false;
 
     $("testo").addEventListener("input", () => { $("conta").textContent = String($("testo").value.length); });
     document.querySelectorAll('input[name="credito"]').forEach(el =>
@@ -90,7 +89,6 @@
     s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     s.async = true;
     s.onload = () => {
-      $("ts-hint").hidden = true;
       window.turnstile.render("#ts-box", {
         sitekey: cfg.sitekey, language: "it", action: "voce",
         callback: (t) => { tsToken = t; },

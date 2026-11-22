@@ -35,8 +35,7 @@
     <a class="back" href="index.html">← Meridiane d'Italia</a>
     <p class="eyebrow">CONTRIBUISCI</p>
     <h1 class="page-title">Inserisci la tua meridiana</h1>
-    <p>Hai fotografato una meridiana? Proponila per il catalogo. <strong>Controllo ogni proposta prima di
-    pubblicarla</strong>, quindi la foto non comparirà subito sul sito.</p>
+    <p>Hai fotografato una meridiana? Proponila per il catalogo. <strong>Ogni proposta viene controllata prima della pubblicazione</strong>, quindi la foto non comparirà subito sul sito.</p>
 
     <p id="form-off" class="notice" hidden>Il modulo non è ancora attivo. Se vuoi segnalare una meridiana, scrivi a
     <a href="mailto:meridianeditalia@gmail.com">meridianeditalia@gmail.com</a>.</p>
@@ -71,7 +70,6 @@
       <div class="field" id="blocco-motto">
         <label for="motto">Motto scritto sulla meridiana</label>
         <input id="motto" type="text" maxlength="300" autocomplete="off">
-        <p class="hint">Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce.</p>
         <p class="err" id="err-motto" hidden></p>
       </div>
 
@@ -92,7 +90,7 @@
 
       <fieldset class="field pos-box" id="pos-box">
         <legend>Posizione della meridiana *</legend>
-        <p class="hint">Serve a controllare la proposta e a mostrare una zona sulla mappa. <strong>La posizione esatta non viene pubblicata</strong>: sul sito compare soltanto una zona approssimativa, un cerchio di circa <!--RAGGIO-->200<!--/RAGGIO--> m di raggio che contiene la meridiana, con il centro spostato. Il punto esatto lo vedo solo io, e lo pubblico solo se verifico che si trova in un luogo pubblico o se il proprietario è d'accordo.</p>
+        <p class="hint">Serve a controllare la proposta e a mostrare una zona sulla mappa. <strong>La posizione esatta non viene pubblicata</strong>: sul sito compare soltanto una zona approssimativa.</p>
         <p class="hint hint-warn" id="pos-prima">Scegli prima il comune: serve a controllare che la posizione sia nel posto giusto.</p>
         <div class="pos-actions">
           <button type="button" id="btn-gps" class="secondary-btn" disabled>📍 Uso la mia posizione attuale</button>
@@ -140,7 +138,7 @@
       <div class="field">
         <label for="note" id="note-label">Note *</label>
         <textarea id="note" rows="4" maxlength="500" placeholder="Descrivi quello che vedi e che sai della meridiana, anche quali emozioni ti suscita"></textarea>
-        <p class="hint"><span id="note-conta">0</span> caratteri su <span id="note-max">500</span> <span id="note-regola">(minimo 50)</span>. Non sono ammessi indirizzi di siti, email, numeri di telefono né parolacce.</p>
+        <p class="hint"><span id="note-conta">0</span> caratteri su <span id="note-max">500</span> <span id="note-regola">(minimo 50)</span></p>
         <p class="err" id="err-note" hidden></p>
       </div>
 
@@ -212,7 +210,7 @@
         <p class="err" id="err-consensi" hidden></p>
       </fieldset>
 
-      <div id="ts-box" class="field"><p class="hint" id="ts-hint" hidden>La verifica anti-spam (Cloudflare Turnstile) compare quando inizi a compilare il modulo.</p></div>
+      <div id="ts-box" class="field"></div>
 
       <button type="submit" id="invia" class="submit-btn">Invia la proposta</button>
       <p id="stato" class="status" role="status" aria-live="polite" hidden></p>

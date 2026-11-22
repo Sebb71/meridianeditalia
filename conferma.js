@@ -24,6 +24,9 @@
 
   function descrivi(v) {
     if (v.tipo === "dati") return `${v.etichetta || v.campo}: ${v.attuale || "(vuoto)"}  →  ${v.nuovo}`;
+    if (v.tipo === "voce_testo") return `Cambiare il testo della tua voce: «${v.attuale}»  →  «${v.nuovo}»`;
+    if (v.tipo === "voce_rimuovi") return "Togliere dal sito questa tua voce.";
+    if (v.tipo === "voce_rimuovi_tutte") return `Togliere dal sito TUTTE le tue voci (${v.attuale}) e cancellare i tuoi dati.`;
     if (v.tipo === "voce") return `Inviare la tua voce «${v.etichetta}» per la valutazione: «${v.nuovo}»`;
     if (v.tipo === "proposta") return v.extra ? "Inviare la tua fotografia in più di una meridiana già pubblicata, per la valutazione." : "Inviare la tua proposta di meridiana per la valutazione.";
     if (v.tipo === "foto") return "Sostituire la fotografia con quella nuova che hai inviato.";
@@ -50,6 +53,8 @@
     const ul = document.createElement("ul");
     (j.voci || []).forEach(v => { const li = document.createElement("li"); li.textContent = descrivi(v); ul.appendChild(li); });
     const rimozione = (j.voci || []).some(v => v.tipo === "rimuovi" || v.tipo === "rimuovi_tutte");
+    const rimozioneVoce = (j.voci || []).some(v => v.tipo === "voce_rimuovi" || v.tipo === "voce_rimuovi_tutte");
+    const modVoce = (j.voci || []).some(v => /^voce_/.test(v.tipo));
     const btn = document.createElement("button");
     btn.type = "button"; btn.className = "submit-btn"; btn.textContent = "Conferma";
     btn.addEventListener("click", async () => {
@@ -64,9 +69,11 @@
       }
     });
     const proposta = (j.voci || []).some(v => v.tipo === "proposta"), voce = (j.voci || []).some(v => v.tipo === "voce");
-    mostra(paragrafo(voce ? `Stai confermando la tua voce su una meridiana di ${j.comune}:` : proposta ? `Stai confermando la tua proposta per ${j.comune}:` : `Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
+    mostra(paragrafo(voce ? `Stai confermando la tua voce su una meridiana di ${j.comune}:` : modVoce ? `Stai confermando questa richiesta per la tua voce su una meridiana di ${j.comune}:` : proposta ? `Stai confermando la tua proposta per ${j.comune}:` : `Stai confermando questa richiesta per la tua meridiana a ${j.comune}:`), ul,
            ...(voce ? [paragrafo("Dopo la conferma leggo la voce e, se va bene, la pubblico sulla scheda con il nome che hai scelto. La pubblicazione non è garantita.", "hint")] : []),
            ...(proposta ? [paragrafo("Dopo la conferma controllo la proposta e, se va bene, la pubblico sul sito. La pubblicazione non è garantita.", "hint")] : []),
+           ...(rimozioneVoce ? [paragrafo("Dopo la conferma la voce non sarà più pubblicata dal prossimo aggiornamento del sito; il tuo nome, la tua email e il testo saranno cancellati entro 30 giorni.", "hint")] : []),
+           ...(modVoce && !rimozioneVoce ? [paragrafo("Dopo la conferma rileggo il nuovo testo e, se va bene, lo pubblico al posto di quello attuale.", "hint")] : []),
            ...(rimozione ? [paragrafo("Dopo la conferma la meridiana non sarà più pubblicata dal prossimo aggiornamento del sito; il tuo nome, la tua email e la foto saranno cancellati entro 30 giorni.", "hint")] : []),
            btn);
   }

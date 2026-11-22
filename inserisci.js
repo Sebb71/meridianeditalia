@@ -39,7 +39,6 @@
     }
 
     $("modulo").hidden = false;
-    if (cfg.sitekey) $("ts-hint").hidden = false;
     if (Number(cfg.note_max) >= 50) noteMax = Number(cfg.note_max);
     if (Number(cfg.note_min) >= 0) noteMin = Math.min(noteMax, Number(cfg.note_min));
     $("note").maxLength = noteMax;
@@ -731,7 +730,6 @@
     s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     s.async = true;
     s.onload = () => {
-      $("ts-hint").hidden = true;
       window.turnstile.render("#ts-box", {
         sitekey: cfg.sitekey, language: "it", action: "inserisci",
         callback: (t) => { tsToken = t; },
