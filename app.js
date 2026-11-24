@@ -22,6 +22,22 @@ function escapeHtml(value) {
 // confronto senza accenti né maiuscole
 const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
+// Sfondo dietro una foto: il colore medio della foto, schiarito verso il colore della carta.
+// Le foto strette o larghe non lasciano bande grigie ai lati. Calcolo leggero, tutto nel browser.
+function tinta(img, box) {
+  try {
+    const c1 = document.createElement("canvas"); c1.width = c1.height = 8;
+    const x1 = c1.getContext("2d"); x1.imageSmoothingQuality = "high";
+    x1.drawImage(img, 0, 0, 8, 8);
+    const c2 = document.createElement("canvas"); c2.width = c2.height = 1;
+    const x2 = c2.getContext("2d", { willReadFrequently: true }); x2.imageSmoothingQuality = "high";
+    x2.drawImage(c1, 0, 0, 8, 8, 0, 0, 1, 1);
+    const d = x2.getImageData(0, 0, 1, 1).data;
+    const mix = (v, p) => Math.round(v * 0.8 + p * 0.2);
+    box.style.backgroundColor = `rgb(${mix(d[0], 241)},${mix(d[1], 230)},${mix(d[2], 214)})`;
+  } catch (_) { /* resta il colore predefinito */ }
+}
+
 // Il sito pubblica solo thumbs (elenchi) e medie (home/scheda): gli originali restano sul PC.
 function stemOf(v) { return String(v || "").replaceAll("\\", "/").split("/").pop().replace(/\.[^.]+$/, ""); }
 const photoUrl = (v, folder) => (v ? `catalogo/${folder}/${stemOf(v)}.jpg` : "");
@@ -64,6 +80,7 @@ async function init() {
   });
   setupSearch();
   $("shuffle").addEventListener("click", pickRandom);
+  $("featured-img").addEventListener("load", () => tinta($("featured-img"), $("featured-link")));
   pickRandom();
 
   initMapGate();
@@ -114,7 +131,7 @@ async function mostraVoceCaso(item, chiave) {
   }
   if (chiave !== currentRandom) return;                  // nel frattempo e' stata scelta un'altra meridiana
   box.hidden = !testo;
-  if (testo) { $("featured-voce-testo").textContent = "“" + testo + "”"; $("featured-voce-firma").textContent = firma; }
+  if (testo) { $("featured-voce-testo").textContent = testo; $("featured-voce-firma").textContent = firma; }   // le virgolette le disegna lo stile
 }
 
 // ---------- home: ricerca con suggerimenti ----------

@@ -40,6 +40,9 @@
   --sp-3: 16px;
   --sp-4: 24px;
   --sp-5: 36px;
+
+  /* piccolo sole del logo (disegno incorporato: nessuna richiesta esterna) */
+  --sole: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'><g fill='%23c9971a'><polygon points='-6,-48 6,-48 0,-18'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(90)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(180)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(270)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(45)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(135)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(225)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(315)'/><circle r='15'/></g></svg>");
 }
 
 * { box-sizing: border-box; }
@@ -205,7 +208,7 @@ footer {
 }
 footer::before {                                           /* piccolo sole al centro del filetto (disegno incorporato, nessuna richiesta esterna) */
   content: ""; position: absolute; top: -14px; left: 50%; width: 40px; height: 28px; margin-left: -20px;
-  background: var(--paper) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'><g fill='%23c9971a'><polygon points='-6,-48 6,-48 0,-18'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(90)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(180)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(270)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(45)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(135)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(225)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(315)'/><circle r='15'/></g></svg>") center / 24px no-repeat;
+  background: var(--paper) var(--sole) center / 24px no-repeat;
 }
 .foot-links { margin: 0 0 8px; font-size: 14px; }
 .foot-links a, .foot-links .link-btn { display: inline-block; padding: 10px 6px; }
@@ -336,7 +339,10 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .about-wrap + .about-wrap { margin-top: 10px; }
-.contribute-link { border-color: var(--accent); }
+.contribute-link { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--shadow); }
+.contribute-link:hover, .contribute-link:active { border-color: var(--ink); }
+.contribute-link .chev, .contribute-link .comune-name small { color: #fff; }
+.contribute-link .comune-name small { opacity: .92; }
 
 /* Posizione nel modulo */
 .pos-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
@@ -383,6 +389,11 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .voci-azione { margin: 10px 0 14px; }
 
 /* Sotto la meridiana a caso: una voce dei visitatori (o le note della scheda) */
-.featured-voce { margin: 12px 0 0; padding: 12px var(--sp-3); border-left: 3px solid var(--accent-2); background: var(--tint); border-radius: 0 var(--radius) var(--radius) 0; }
-.featured-voce p { margin: 0; font-size: 17px; line-height: 1.5; font-style: italic; }
-.featured-voce-firma { display: block; margin-top: 6px; color: var(--muted); font: 13px var(--font-sans); }
+.featured-voce { position: relative; margin: 14px 0 0; padding: 32px 20px 16px; border: 0; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.featured-voce::before { content: "\201C"; position: absolute; top: 6px; left: 14px; font: 64px/1 var(--font-serif); color: var(--accent-2); }
+.featured-voce p { margin: 0; font-size: 19px; line-height: 1.5; font-style: italic; }
+.featured-voce-firma { display: block; margin-top: 10px; color: var(--muted); font: 13px var(--font-sans); }
+
+/* Home: ricerca preceduta dal filetto con il sole */
+.search-block { position: relative; margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line); }
+.search-block::before { content: ""; position: absolute; top: -14px; left: 50%; width: 40px; height: 28px; margin-left: -20px; background: var(--paper) var(--sole) center / 24px no-repeat; }
