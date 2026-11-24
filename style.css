@@ -75,8 +75,18 @@ a { color: var(--accent); }
   color: var(--ink); text-decoration: none;
 }
 .brand-sun { font-size: 30px; line-height: 1; color: var(--accent-2); }
-.brand-text strong, .brand-text h1 { display: block; margin: 0; font-size: 20px; font-weight: 400; line-height: 1.1; }
-.brand-text small { display: block; color: var(--muted); font: 12px var(--font-sans); margin-top: 3px; }
+.brand-icon { width: 44px; height: 44px; }                /* sovrascrive le misure scritte nelle pagine: il logo resta piccolo e il titolo sta su una riga */
+.brand-text { min-width: 0; }
+.brand-text strong, .brand-text h1 { display: block; margin: 0; font-size: 22px; font-weight: 400; line-height: 1.1; white-space: nowrap; }
+.brand-text small { display: block; color: var(--muted); font: 12px var(--font-sans); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 360px) { .brand-text strong, .brand-text h1 { font-size: 19px; } }
+
+/* Fascia chiara sotto la barra, solo nella home: numero di meridiane e di comuni */
+.conteggi {
+  padding: 7px max(var(--sp-3), calc((100% - 900px) / 2 + var(--sp-3)));
+  background: var(--paper); border-bottom: 1px solid var(--line);
+  color: var(--muted); font: 12px var(--font-sans);
+}
 
 main { max-width: 900px; margin: auto; padding: 14px var(--sp-3) 30px; }
 
@@ -189,13 +199,24 @@ h2 { margin: 0 0 4px; font-size: 32px; font-weight: 400; line-height: 1.1; }
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35));
 }
 
-footer { max-width: 900px; margin: auto; padding: 10px var(--sp-3) 36px; color: var(--muted); font: 12px var(--font-sans); }
+footer {
+  position: relative; width: calc(100% - 2 * var(--sp-3)); max-width: 868px; margin: 34px auto 0; padding: 34px 0 36px;
+  border-top: 1px solid var(--line); color: var(--muted); font: 12px/1.5 var(--font-sans); text-align: center;
+}
+footer::before {                                           /* piccolo sole al centro del filetto (disegno incorporato, nessuna richiesta esterna) */
+  content: ""; position: absolute; top: -14px; left: 50%; width: 40px; height: 28px; margin-left: -20px;
+  background: var(--paper) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'><g fill='%23c9971a'><polygon points='-6,-48 6,-48 0,-18'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(90)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(180)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(270)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(45)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(135)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(225)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(315)'/><circle r='15'/></g></svg>") center / 24px no-repeat;
+}
+.foot-links { margin: 0 0 8px; font-size: 14px; }
+.foot-links a, .foot-links .link-btn { display: inline-block; padding: 10px 6px; }
+.foot-copy { margin: 0; }
 
 /* --- schermi più larghi --- */
 @media (min-width: 700px) {
   main { padding: 24px 24px 50px; }
-  .brand { padding: 14px 24px; }
-  .brand-text strong, .brand-text h1 { font-size: 24px; }
+  .brand { padding: 12px 24px; }
+  .brand-icon { width: 56px; height: 56px; }
+  .brand-text strong, .brand-text h1 { font-size: 26px; }
   .featured-photo { aspect-ratio: 16 / 9; }
   .featured-title { font-size: 34px; }
   .photo-wrap { margin: 0; border-radius: var(--radius); overflow: hidden; }
