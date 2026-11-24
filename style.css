@@ -326,6 +326,9 @@ footer p { margin: 0 0 6px; }
 .err { margin: 6px 0 0; color: var(--danger); font: 700 14px/1.4 var(--font-sans); }
 label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10px; padding: 10px 12px;
   border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font: 15px/1.45 var(--font-sans); cursor: pointer; }
+label.choice:hover { border-color: var(--accent); }
+label.choice:has(input:checked) { border-color: var(--accent); background: var(--tint); }       /* la scelta fatta si vede */
+.checks label.choice { font-size: 14px; }
 .choice input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
 .choice span { font-weight: 400; color: var(--ink); }
 .choice strong { font-weight: 700; }
@@ -333,11 +336,13 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 #nome-box label { display: block; margin: 0 0 6px; font: 700 15px var(--font-sans); }
 .anteprima { display: block; max-width: 100%; max-height: 260px; margin: 12px 0 0; border-radius: var(--radius); }
 .sug-btn { min-height: 46px; }
-.submit-btn { width: 100%; min-height: 54px; border: 0; border-radius: var(--radius); background: var(--accent); color: #fff; font: 700 17px var(--font-sans); cursor: pointer; }
+.submit-btn { width: 100%; min-height: 54px; border: 0; border-radius: var(--radius); background: var(--accent); color: #fff; font: 700 17px var(--font-sans); cursor: pointer; box-shadow: var(--shadow); }
+.submit-btn:hover:not(:disabled) { background: #7a3219; }
 .submit-btn:disabled { opacity: .6; cursor: wait; }
 .status { margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius); background: var(--tint); font: 15px/1.5 var(--font-sans); }
 .status.bad { background: var(--danger-bg); color: var(--danger-ink); font-weight: 700; }
-.notice { margin: 18px 0; padding: 14px var(--sp-3); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font: 15px/1.55 var(--font-sans); }
+.notice { margin: 18px 0; padding: 14px var(--sp-3); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font: 15px/1.55 var(--font-sans); box-shadow: var(--shadow); }
+.notice.ok { border-left: 4px solid var(--accent-2); }
 .notice.ok h2 { margin-top: 0; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -348,6 +353,7 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .contribute-link .comune-name small { opacity: .92; }
 
 /* Posizione nel modulo */
+.pos-box { padding: 14px; background: var(--tint); border-radius: var(--radius); }               /* la posizione ha un riquadro tenue tutto suo */
 .pos-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
 .secondary-btn { flex: 1 1 210px; min-height: 50px; padding: 0 14px; border: 1px solid var(--accent); border-radius: var(--radius);
   background: var(--card); color: var(--ink); font: 700 15px var(--font-sans); cursor: pointer; }

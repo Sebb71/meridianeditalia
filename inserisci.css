@@ -1,5 +1,5 @@
 /* Ritaglio della foto nel modulo "Inserisci la tua meridiana" */
-.crop-wrap { margin: 10px 0 0; padding: 20px; overflow: hidden; border-radius: 12px; background: #2b2723;
+.crop-wrap { margin: 10px 0 0; padding: 20px; overflow: hidden; border-radius: 12px; background: #2e2219;
   -webkit-user-select: none; user-select: none; }
 .crop-stage { position: relative; line-height: 0; }
 .crop-stage canvas { display: block; width: 100%; height: auto; }
@@ -19,18 +19,18 @@
 .h[data-h="e"] { right: -20px; top: 50%; margin-top: -20px; cursor: ew-resize; }
 /* sotto la soglia: la foto si sbiadisce e compare l'avviso (le maniglie restano usabili) */
 .crop-warning { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
-  padding: 16px; text-align: center; background: rgba(255, 255, 255, .92); color: #7d2514;
-  font: 700 17px/1.45 Arial, sans-serif; pointer-events: none; }
+  padding: 16px; text-align: center; background: rgba(251, 246, 238, .93); color: var(--danger-ink, #7d2514);
+  font: 700 17px/1.45 var(--font-sans, Arial, sans-serif); pointer-events: none; }
 .crop-warning p { margin: 0; }
 .crop-warning[hidden] { display: none; }
-.crop-stage.troppo-piccolo .crop-box { border-color: #a3321c; box-shadow: none; }
-#crop-info.bad { color: #a3321c; font-weight: 700; }
+.crop-stage.troppo-piccolo .crop-box { border-color: var(--danger, #a3321c); box-shadow: none; }
+#crop-info.bad { color: var(--danger, #a3321c); font-weight: 700; }
 
 /* Elenco "Meridiane già presenti in questo comune" */
 .gia-lista { list-style: none; margin: 10px 0 14px; padding: 0; display: grid; gap: 8px; max-height: 360px; overflow-y: auto; }
-.gia-voce { display: flex; gap: 12px; align-items: flex-start; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
-.gia-voce img { flex: none; width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: #e6dccb; }
-.gia-testo { display: flex; flex-direction: column; gap: 2px; min-width: 0; font: 14px/1.4 Arial, sans-serif; }
+.gia-voce { display: flex; gap: 12px; align-items: flex-start; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius, 10px); background: var(--card); box-shadow: var(--shadow); }
+.gia-voce img { flex: none; width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--thumb-bg, #dcc9ad); }
+.gia-testo { display: flex; flex-direction: column; gap: 2px; min-width: 0; font: 14px/1.4 var(--font-sans, Arial, sans-serif); }
 .gia-testo strong { font-size: 15px; }
 .gia-testo span { color: var(--muted); }
 .gia-testo a { font-weight: 700; }
@@ -38,11 +38,10 @@
 
 
 /* avviso gentile: ritaglio sopra il minimo ma sotto la dimensione consigliata */
-.crop-soft { color: #8a5a00; background: #fff6e0; border-radius: 8px; padding: .5rem .7rem; }
+.crop-soft { color: #7a4e00; background: #fbecc8; border-radius: 8px; padding: .5rem .7rem; }
 .crop-soft[hidden] { display: none; }
-@media (prefers-color-scheme: dark) { .crop-soft { color: #f0c987; background: #3a2e14; } }
 
 /* elenchi a discesa (anno, proprieta') dei moduli */
-.field select { width: 100%; box-sizing: border-box; padding: 12px; font: inherit; border: 1px solid var(--line, #ddd2c1); border-radius: 12px;
-  background: var(--card, #fffdf8); color: var(--ink, #28241f); }
+.field select { width: 100%; box-sizing: border-box; padding: 12px; font: inherit; border: 1px solid var(--line, #d3bd9a); border-radius: var(--radius, 10px);
+  background: var(--card, #fbf6ee); color: var(--ink, #2e2219); font-family: var(--font-sans, Arial, sans-serif); }
 .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }

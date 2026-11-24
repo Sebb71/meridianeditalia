@@ -2,6 +2,10 @@
 // Le parti dell'editor di ritaglio e dell'antispam sono le stesse del modulo di invio (inserisci.js): se cambi quelle, cambia anche qui.
 (function () {
   "use strict";
+  // Numeri romani per le meridiane di un comune e motto "vuoto" (come nel resto del sito)
+  function romano(n) { let s = ""; for (const [v, r] of [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { s += r; n -= v; } return s || "I"; }
+  function mottoVisibile(m) { const t = String(m || "").trim(); return /^(nessun motto|motto non presente|non presente|assente|nessuno|n\/?a|-+|—+)\.?$/i.test(t) ? "" : t; }
+
   const $ = (id) => document.getElementById(id);
   const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
@@ -291,7 +295,7 @@
     $("mer-lista").innerHTML = items.map((it, i) => {
       const foto = [{ id: it.id_foto != null ? it.id_foto : it.id, foto: it.foto, anno: it["anno fotografia"], c: it.copyright }]
         .concat((Array.isArray(it.foto_extra) ? it.foto_extra : []).map(e => ({ id: e.id, foto: e.foto, anno: e["anno fotografia"], c: e.copyright })));
-      const titolo = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      const titolo = [`Meridiana ${romano(i + 1)}`, it.localita, mottoVisibile(it.motto) ? "“" + String(mottoVisibile(it.motto)).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
       const righe = foto.map(f => {
         const stem = String(f.foto || "").split("/").pop().replace(/\.[^.]+$/, "");
         const anno = /^\d{4}$/.test(String(f.anno).trim()) ? "Foto del " + f.anno : "Foto senza anno";
@@ -317,7 +321,7 @@
       const voci = Array.isArray(it.voci) ? it.voci : [];
       if (!voci.length) return "";
       n += voci.length;
-      const tit = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      const tit = [`Meridiana ${romano(i + 1)}`, it.localita, mottoVisibile(it.motto) ? "“" + String(mottoVisibile(it.motto)).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
       const righe = voci.map(v => {
         const t = String(v.testo || "");
         return `<li class="gia-voce"><label class="choice" style="margin:0;align-items:flex-start">

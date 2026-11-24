@@ -1,6 +1,10 @@
 // ===== Modulo "Inserisci la tua meridiana" =====
 (function () {
   "use strict";
+  // Numeri romani per le meridiane di un comune e motto "vuoto" (come nel resto del sito)
+  function romano(n) { let s = ""; for (const [v, r] of [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { s += r; n -= v; } return s || "I"; }
+  function mottoVisibile(m) { const t = String(m || "").trim(); return /^(nessun motto|motto non presente|non presente|assente|nessuno|n\/?a|-+|—+)\.?$/i.test(t) ? "" : t; }
+
   const $ = (id) => document.getElementById(id);
   const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const MAX_LATO = 2400, MAX_BYTE = 3 * 1024 * 1024;   // lato massimo inviato, peso massimo
@@ -517,8 +521,8 @@
       const sotto = [it.localita, /^\d{4}$/.test(String(it["anno fotografia"]).trim()) ? "foto " + it["anno fotografia"] : ""].filter(Boolean).join(" · ");
       return `<li class="gia-voce">
         <img src="catalogo/thumbs/${esc(stem)}.jpg" onerror="this.onerror=null;this.src='catalogo/medie/${esc(stem)}.jpg'" alt="" loading="lazy" width="64" height="64">
-        <span class="gia-testo"><strong>${items.length > 1 ? "Meridiana " + (i + 1) : "Meridiana"}</strong>
-          ${it.motto ? `<span>“${esc(it.motto)}”</span>` : ""}${sotto ? `<span>${esc(sotto)}</span>` : ""}
+        <span class="gia-testo"><strong>${items.length > 1 ? "Meridiana " + romano(i + 1) : "Meridiana"}</strong>
+          ${mottoVisibile(it.motto) ? `<span>“${esc(mottoVisibile(it.motto))}”</span>` : ""}${sotto ? `<span>${esc(sotto)}</span>` : ""}
           <a href="index.html#m=${esc(c.slug)}/${encodeURIComponent(it.id)}" target="_blank" rel="noopener">Vedi la scheda ↗</a></span></li>`;
     }).join("");
     // elenco per la scelta della meridiana a cui aggiungere la foto (con il limite di foto per meridiana)
@@ -528,7 +532,7 @@
       const n = 1 + (Array.isArray(it.foto_extra) ? it.foto_extra.length : 0);
       const pieno = n >= max;
       if (!pieno) disponibili++;
-      const nome = [`Meridiana ${i + 1}`, it.localita, it.motto ? "“" + String(it.motto).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
+      const nome = [`Meridiana ${romano(i + 1)}`, it.localita, mottoVisibile(it.motto) ? "“" + String(mottoVisibile(it.motto)).slice(0, 40) + "”" : ""].filter(Boolean).join(" – ");
       return `<option value="${esc(it.id)}"${pieno ? " disabled" : ""}>${esc(nome)} (${n} foto${pieno ? ", già al massimo" : ""})</option>`;
     }).join("");
     $("gia-max").textContent = disponibili ? `Ogni meridiana può avere al massimo ${max} foto.`

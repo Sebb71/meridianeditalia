@@ -2,6 +2,10 @@
 // Si apre dalla scheda di una meridiana con  voci.html?m=<slug del comune>/<id della meridiana>
 (function () {
   "use strict";
+  // Numeri romani per le meridiane di un comune e motto "vuoto" (come nel resto del sito)
+  function romano(n) { let s = ""; for (const [v, r] of [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) while (n >= v) { s += r; n -= v; } return s || "I"; }
+  function mottoVisibile(m) { const t = String(m || "").trim(); return /^(nessun motto|motto non presente|non presente|assente|nessuno|n\/?a|-+|—+)\.?$/i.test(t) ? "" : t; }
+
   const $ = (id) => document.getElementById(id);
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 
@@ -68,7 +72,7 @@
 
   function mostraRiepilogo() {
     const stem = String(item.foto || "").split("/").pop().replace(/\.[^.]+$/, "");
-    const sotto = [item.localita, item.motto ? "“" + item.motto + "”" : ""].filter(Boolean).join(" · ");
+    const sotto = [item.localita, mottoVisibile(item.motto) ? "“" + mottoVisibile(item.motto) + "”" : ""].filter(Boolean).join(" · ");
     $("mer-riepilogo").innerHTML = (stem ? `<img src="catalogo/thumbs/${esc(stem)}.jpg" onerror="this.onerror=null;this.src='catalogo/medie/${esc(stem)}.jpg'" alt="" width="64" height="64">` : "") +
       `<span class="gia-testo"><strong>Meridiana a ${esc(comuneKey)}</strong>${sotto ? `<span>${esc(sotto)}</span>` : ""}</span>`;
     $("mer-riepilogo").hidden = false;
