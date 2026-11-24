@@ -22,6 +22,19 @@ function escapeHtml(value) {
 // confronto senza accenti né maiuscole
 const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
+// Numeri romani per le meridiane di un comune (I, II, III...)
+function romano(n) {
+  const t = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let s = "";
+  for (const [v, r] of t) while (n >= v) { s += r; n -= v; }
+  return s || "I";
+}
+// Il motto vuoto (o scritto come "nessun motto", "motto non presente"...) non si mostra: il blocco sparisce
+function mottoVisibile(m) {
+  const t = String(m || "").trim();
+  return /^(nessun motto|motto non presente|non presente|assente|nessuno|n\/?a|-+|—+)\.?$/i.test(t) ? "" : t;
+}
+
 // Sfondo dietro una foto: il colore medio della foto, schiarito verso il colore della carta.
 // Le foto strette o larghe non lasciano bande grigie ai lati. Calcolo leggero, tutto nel browser.
 function tinta(img, box) {
@@ -292,8 +305,8 @@ async function showComune(arg, token) {
       <a class="sundial-btn" href="#m=${c.slug}/${encodeURIComponent(item.id)}">
         <img src="${escapeHtml(photoUrl(item.foto, "thumbs"))}" ${thumbFallback(item.foto)} alt="" loading="lazy" width="76" height="76">
         <span class="sundial-info">
-          <strong>Meridiana ${i + 1}</strong>
-          ${item.motto ? `<span>“${escapeHtml(item.motto)}”</span>` : ""}
+          <strong>Meridiana ${romano(i + 1)}</strong>
+          ${mottoVisibile(item.motto) ? `<span>“${escapeHtml(mottoVisibile(item.motto))}”</span>` : ""}
           ${sub ? `<span>${escapeHtml(sub)}</span>` : ""}
         </span>
         <span class="chev">›</span>
@@ -396,7 +409,7 @@ async function showDetail(slugArg, id, token) {
 
   const idx = list.indexOf(item);
   const prev = list[idx - 1], next = list[idx + 1];
-  const etichetta = list.length > 1 ? `Meridiana ${idx + 1}` : "Meridiana";
+  const etichetta = list.length > 1 ? `Meridiana ${romano(idx + 1)}` : "Meridiana";
   const link = (it) => `#m=${c.slug}/${encodeURIComponent(it.id)}`;
   const gm = String(item["google maps"] ?? "").trim();
 
@@ -418,18 +431,18 @@ async function showDetail(slugArg, id, token) {
     if (p.anno && !isYear(p.anno)) notes.push(p.anno);
     if (gm && !isUrl(gm) && !isCoord(gm)) notes.push(gm);
     const meta = [];
-    if (isYear(p.anno)) meta.push(`<div><strong>Anno fotografia:</strong> ${escapeHtml(p.anno)}</div>`);
+    if (isYear(p.anno)) meta.push(`<div><strong>Anno fotografia</strong> ${escapeHtml(p.anno)}</div>`);
     if (item.proprieta === "Privata") {
-      meta.push(`<div><strong>Proprietà:</strong> Privata</div>`);
+      meta.push(`<div><strong>Proprietà</strong> Privata</div>`);
     } else if (item.proprieta === "Pubblica") {
-      meta.push(`<div><strong>Proprietà:</strong> Pubblica</div>`);
+      meta.push(`<div><strong>Proprietà</strong> Pubblica</div>`);
     }
     if (gm && isUrl(gm)) {
-      meta.push(`<div><strong>Posizione esatta:</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
+      meta.push(`<div><strong>Posizione esatta</strong> <a href="${escapeHtml(gm)}" target="_blank" rel="noopener noreferrer">Apri in Google Maps ↗</a></div>`);
     } else if (gm && isCoord(gm)) {
-      meta.push(`<div><strong>Google Maps:</strong> ${escapeHtml(gm)}</div>`);
+      meta.push(`<div><strong>Google Maps</strong> ${escapeHtml(gm)}</div>`);
     }
-    notes.forEach(n => meta.push(`<div><strong>Note:</strong> ${escapeHtml(n)}</div>`));
+    notes.forEach(n => meta.push(`<div><strong>Note</strong> ${escapeHtml(n)}</div>`));
     return meta.join("");
   };
 
@@ -461,7 +474,7 @@ async function showDetail(slugArg, id, token) {
       <h2>${escapeHtml(c.nome)}</h2>
       ${placeLine(c) ? `<p class="muted">${escapeHtml(placeLine(c))}</p>` : ""}
       ${item.localita ? `<div class="detail-locality"><strong>Località:</strong> ${escapeHtml(item.localita)}</div>` : ""}
-      ${item.motto ? `<div class="motto">“${escapeHtml(item.motto)}”</div>` : ""}
+      ${mottoVisibile(item.motto) ? `<div class="motto">“${escapeHtml(mottoVisibile(item.motto))}”</div>` : ""}
       <div class="meta" id="meta-foto">${buildMeta(foto[sel])}</div>
       ${item.zona ? `<div class="zona"><button type="button" class="link-btn" id="zona-btn" aria-expanded="false" aria-controls="zona-box">Vedi posizione approssimativa</button>
         <div id="zona-box" hidden></div></div>` : ""}
@@ -473,6 +486,11 @@ async function showDetail(slugArg, id, token) {
         <a href="${next ? link(next) : "#"}" class="${next ? "" : "disabled"}">Successiva ›</a>
       </nav>` : ""}`;
   if (!$("meta-foto").innerHTML) $("meta-foto").hidden = true;
+  const fotoGrandeEl = $("foto-img");                                    // sfondo della foto = colore medio della foto (anche al cambio di foto in galleria)
+  if (fotoGrandeEl) {
+    fotoGrandeEl.addEventListener("load", () => tinta(fotoGrandeEl, $("foto-link")));
+    if (fotoGrandeEl.complete && fotoGrandeEl.naturalWidth) tinta(fotoGrandeEl, $("foto-link"));
+  }
 
   zonaCorrente = item.zona || null;
   if (item.zona) {                                                       // la mappa si apre solo al clic: la pagina resta leggera

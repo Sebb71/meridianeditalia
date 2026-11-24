@@ -154,7 +154,8 @@ h2 { margin: 0 0 4px; font-size: 32px; font-weight: 400; line-height: 1.1; }
   display: inline-flex; align-items: center; min-height: 44px;
   margin-bottom: 8px; font: 600 15px var(--font-sans); text-decoration: none;
 }
-.sundial-btn { padding: 8px; }
+.sundial-btn { padding: 8px; border-color: transparent; box-shadow: var(--shadow); }
+.sundial-btn:hover, .sundial-btn:active { border-color: var(--accent); }
 .sundial-btn img {
   width: 76px; height: 76px; flex: none;
   object-fit: cover; border-radius: var(--radius-sm); background: var(--thumb-bg);
@@ -174,13 +175,15 @@ h2 { margin: 0 0 4px; font-size: 32px; font-weight: 400; line-height: 1.1; }
 .photo-hint { margin: 6px 0 0; text-align: center; color: var(--muted); font: 12px var(--font-sans); }
 .detail-body { padding-top: var(--sp-3); }
 .detail-locality { margin: 6px 0 4px; font-size: 16px; }
-.motto {
-  margin: 18px 0; padding: 14px var(--sp-3);
-  border-left: 3px solid var(--accent-2); background: var(--tint);
-  font-style: italic; font-size: 21px;
+.motto {                                                   /* citazione al centro, tra due filetti ocra con il sole */
+  position: relative; margin: 34px 0 28px; padding: 24px 6px 22px; text-align: center;
+  border-top: 1px solid var(--accent-2); border-bottom: 1px solid var(--accent-2);
+  font-style: italic; font-size: 26px; line-height: 1.35;
 }
-.meta { display: grid; gap: 10px; font: 15px/1.55 var(--font-sans); color: var(--muted); }
-.meta strong { color: var(--ink); }
+.motto::before { content: ""; position: absolute; top: -14px; left: 50%; width: 40px; height: 28px; margin-left: -20px; background: var(--paper) var(--sole) center / 24px no-repeat; }
+.meta { display: flex; flex-wrap: wrap; gap: 10px; font: 15px/1.4 var(--font-sans); color: var(--ink); }
+.meta > div { flex: 1 1 150px; padding: 12px 14px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.meta strong { display: block; margin-bottom: 4px; font: 700 11px/1.2 var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
 .pager a {
   display: flex; align-items: center; justify-content: center; min-height: 48px;
@@ -372,7 +375,8 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .galleria-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* Zona approssimativa nella scheda: la mappa si apre solo al clic */
-.zona { margin: 10px 0 0; font: 15px var(--font-sans); }
+.zona { margin: 6px 0 0; font: 15px var(--font-sans); }
+.zona .link-btn { min-height: 44px; }
 .zona-map { height: 300px; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .zona-gate { margin-top: 10px; }
 .zona-gate p { margin: 0 0 8px; }
@@ -382,8 +386,9 @@ label.choice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 10
 .voci h3 { margin: 0 0 4px; font-size: 24px; font-weight: 400; }
 .voci-nota { margin: 0 0 6px; color: var(--muted); font: 13px/1.5 var(--font-sans); }
 .voci-cat { margin: 20px 0 8px; color: var(--accent); font: 700 12px/1.3 var(--font-sans); letter-spacing: .12em; text-transform: uppercase; }
-.voce { margin: 0 0 12px; padding: 12px var(--sp-3); border-left: 3px solid var(--accent-2); background: var(--tint); border-radius: 0 var(--radius) var(--radius) 0; }
-.voce blockquote { margin: 0; font-size: 17px; line-height: 1.5; }
+.voce { position: relative; margin: 0 0 12px; padding: 30px 18px 14px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.voce::before { content: "\201C"; position: absolute; top: 4px; left: 12px; font: 48px/1 var(--font-serif); color: var(--accent-2); }
+.voce blockquote { margin: 0; font-size: 17px; line-height: 1.5; font-style: italic; }
 .voce figcaption { margin-top: 6px; color: var(--muted); font: 13px var(--font-sans); }
 .voci-fine { margin: 14px 0 0; color: var(--muted); font: 14px/1.5 var(--font-sans); }
 .voci-azione { margin: 10px 0 14px; }
