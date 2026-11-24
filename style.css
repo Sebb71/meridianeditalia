@@ -41,6 +41,9 @@
   --sp-4: 24px;
   --sp-5: 36px;
 
+  /* allineamento dei paragrafi nelle pagine di testo e nelle voci: "justify" = giustificato, "left" = a sinistra */
+  --testo-allineato: justify;
+
   /* piccolo sole del logo (disegno incorporato: nessuna richiesta esterna) */
   --sole: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'><g fill='%23c9971a'><polygon points='-6,-48 6,-48 0,-18'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(90)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(180)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(270)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(45)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(135)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(225)'/><polygon points='-6,-48 6,-48 0,-18' transform='rotate(315)'/><circle r='15'/></g></svg>");
 }
@@ -304,9 +307,18 @@ footer p { margin: 0 0 6px; }
   padding: 0; border: 0; background: none; color: var(--accent);
   font: inherit; text-decoration: underline; cursor: pointer;
 }
-.privacy h2 { margin: 30px 0 6px; font-size: 22px; }
+.privacy h2 { margin: 34px 0 8px; font-size: 22px; }
+.privacy:not(.form-page) h2::after { content: ""; display: block; width: 36px; height: 2px; margin-top: 8px; background: var(--accent-2); }   /* breve filetto ocra sotto i titoli di sezione */
 .privacy p, .privacy li { font: 16px/1.6 var(--font-sans); }
 .privacy ul { padding-left: 22px; }
+.privacy li::marker { color: var(--accent-2); }
+.privacy code { padding: 1px 5px; border-radius: 4px; background: var(--tint); font-size: .9em; }
+.page-title + p:not(.muted) { font: 19px/1.6 var(--font-serif); }                  /* il primo paragrafo di una pagina di testo e' un'apertura, in Georgia piu' grande */
+.privacy:not(.form-page) p:not(.muted):not(.page-cta), .privacy:not(.form-page) li,
+.voce blockquote {                                                               /* paragrafi giustificati (si cambia con --testo-allineato in :root) */
+  text-align: var(--testo-allineato); -webkit-hyphens: auto; hyphens: auto; overflow-wrap: break-word;
+}
+.page-cta .cta-btn { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--shadow); }
 
 .about-wrap { margin: 22px 0 0; }
 .about-link .comune-name { font-size: 18px; }
